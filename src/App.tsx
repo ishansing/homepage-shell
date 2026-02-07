@@ -1,35 +1,38 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import Clock from "./components/Clock";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="min-h-screen bg-slate-900 text-slate-100 p-8">
+      {/* Grid Container */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Left Column: Time & Weather */}
+        <div className="space-y-8">
+          <div className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700">
+            <Clock />
+          </div>
+
+          <div className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700">
+            <h2 className="text-xl font-bold mb-4">Weather Component</h2>
+            {/* <Weather /> goes here later */}
+          </div>
+        </div>
+
+        {/* Right Column: Todos & Links */}
+        <div className="space-y-8">
+          <div className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700">
+            <h2 className="text-xl font-bold mb-4">Todo List</h2>
+            {/* <TodoList /> goes here later */}
+          </div>
+
+          <div className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700">
+            <h2 className="text-xl font-bold mb-4">Bookmarks</h2>
+            {/* <Bookmarks /> goes here later */}
+          </div>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
