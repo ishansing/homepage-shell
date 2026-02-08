@@ -33,7 +33,7 @@ const TodoList = () => {
   // -----------------------------------------------------------------
 
   // ADD A NEW TASK
-  const addTodo = (e: React.FormEvent) => {
+  const addTodo = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault(); // Stop form from refreshing the page
     if (!text.trim()) return; // Prevent adding empty blank tasks
 
