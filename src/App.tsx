@@ -1,3 +1,4 @@
+import Bookmarks from "./components/Bookmarks";
 import Clock from "./components/Clock";
 import TodoList from "./components/TodoList";
 import Weather from "./components/Weather";
@@ -26,7 +27,7 @@ function App() {
 
           <div className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700">
             <h2 className="text-xl font-bold mb-4">Bookmarks</h2>
-            {/* <Bookmarks /> goes here later */}
+            <Bookmarks />
           </div>
         </div>
       </div>
