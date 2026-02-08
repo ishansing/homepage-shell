@@ -1,4 +1,5 @@
 import Clock from "./components/Clock";
+import TodoList from "./components/TodoList";
 import Weather from "./components/Weather";
 
 function App() {
@@ -20,8 +21,7 @@ function App() {
         {/* Right Column: Todos & Links */}
         <div className="space-y-8">
           <div className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700">
-            <h2 className="text-xl font-bold mb-4">Todo List</h2>
-            {/* <TodoList /> goes here later */}
+            <TodoList />
           </div>
 
           <div className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700">
