@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import Clock from "./components/Clock";
+import Weather from "./components/Weather";
 
 function App() {
   return (
@@ -13,8 +13,7 @@ function App() {
           </div>
 
           <div className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700">
-            <h2 className="text-xl font-bold mb-4">Weather Component</h2>
-            {/* <Weather /> goes here later */}
+            <Weather />
           </div>
         </div>
 
