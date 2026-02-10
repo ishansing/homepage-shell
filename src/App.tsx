@@ -26,7 +26,6 @@ function App() {
           </div>
 
           <div className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700">
-            <h2 className="text-xl font-bold mb-4">Bookmarks</h2>
             <Bookmarks />
           </div>
         </div>
