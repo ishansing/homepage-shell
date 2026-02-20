@@ -1,8 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
-// HELPER: Open-Meteo returns a numeric "weathercode".
-// This function translates that number into a human-readable string.
-// Reference: https://open-meteo.com/en/docs
 const getWeatherDescription = (code: number): string => {
   if (code === 0) return "Clear sky";
   if (code >= 1 && code <= 3) return "Partly cloudy";
@@ -23,39 +20,18 @@ interface CurrentWeather {
   time: string;
 }
 
-interface LocationSuggestion {
-  id: number;
-  name: string;
-  latitude: number;
-  longitude: number;
-  admin1?: string;
-  country: string;
-}
-
 const Weather = () => {
-  // -----------------------------------------------------------------
-  // 1. STATE MANAGEMENT
-  // -----------------------------------------------------------------
   const [weather, setWeather] = useState<CurrentWeather | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [city, setCity] = useState("");
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [locationName, setLocationName] = useState<string | null>(null);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  
-  const suggestionRef = useRef<HTMLDivElement>(null);
 
-  // -----------------------------------------------------------------
-  // 2. INITIALIZATION & PERSISTENCE
-  // -----------------------------------------------------------------
-  // Fetch weather for coordinates
   const fetchWeather = async (lat: number, lon: number) => {
     setLoading(true);
     setError(null);
     try {
       const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`,
       );
       if (!response.ok) throw new Error("Weather fetch failed");
       const data = await response.json();
@@ -68,7 +44,6 @@ const Weather = () => {
     }
   };
 
-  // On mount: check localStorage for saved location
   useEffect(() => {
     const saved = localStorage.getItem("last_weather_location");
     if (saved) {
@@ -78,107 +53,53 @@ const Weather = () => {
     }
   }, []);
 
-  // -----------------------------------------------------------------
-  // 3. SUGGESTIONS FETCHING (with debounce)
-  // -----------------------------------------------------------------
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (city.length < 3) {
-        setSuggestions([]);
-        return;
-      }
-
+    const handleSetLocation = async (event: CustomEvent<string>) => {
+      const cityName = event.detail;
+      setLoading(true);
+      setError(null);
       try {
         const response = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-            city
-          )}&count=5&language=en&format=json`
+            cityName,
+          )}&count=1&language=en&format=json`,
         );
         const data = await response.json();
-        setSuggestions(data.results || []);
+        if (data.results && data.results.length > 0) {
+          const loc = data.results[0];
+          const fullName = `${loc.name}${loc.admin1 ? `, ${loc.admin1}` : ""}, ${loc.country}`;
+          setLocationName(fullName);
+          localStorage.setItem(
+            "last_weather_location",
+            JSON.stringify({ lat: loc.latitude, lon: loc.longitude, name: fullName }),
+          );
+          await fetchWeather(loc.latitude, loc.longitude);
+        } else {
+          setError("City not found");
+        }
       } catch (err) {
-        console.error("Failed to fetch suggestions:", err);
+        setError("Failed to fetch location");
+      } finally {
+        setLoading(false);
       }
     };
 
-    const debounceTimer = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(debounceTimer);
-  }, [city]);
-
-  // Close suggestions when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
+    window.addEventListener("set-weather-location" as any, handleSetLocation as any);
+    return () => {
+      window.removeEventListener("set-weather-location" as any, handleSetLocation as any);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // -----------------------------------------------------------------
-  // 4. SELECTION LOGIC
-  // -----------------------------------------------------------------
-  const selectLocation = async (loc: LocationSuggestion) => {
-    const fullName = `${loc.name}${loc.admin1 ? `, ${loc.admin1}` : ""}, ${loc.country}`;
-    setCity(loc.name);
-    setShowSuggestions(false);
-    setLocationName(fullName);
-
-    // Save to localStorage
-    localStorage.setItem(
-      "last_weather_location",
-      JSON.stringify({ lat: loc.latitude, lon: loc.longitude, name: fullName })
-    );
-
-    await fetchWeather(loc.latitude, loc.longitude);
-  };
-
-  // -----------------------------------------------------------------
-  // 4. RENDER (The View)
-  // -----------------------------------------------------------------
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4">
-      <div className="relative mb-6 w-full max-w-sm" ref={suggestionRef}>
-        <input
-          type="text"
-          value={city}
-          onChange={(e) => {
-            setCity(e.target.value);
-            setShowSuggestions(true);
-          }}
-          onFocus={() => setShowSuggestions(true)}
-          placeholder="Search city..."
-          className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        
-        {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
-            {suggestions.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => selectLocation(s)}
-                className="w-full text-left px-4 py-2 hover:bg-slate-700 text-slate-200 transition-colors border-b border-slate-700 last:border-0"
-              >
-                <div className="font-medium">{s.name}</div>
-                <div className="text-xs text-slate-400">
-                  {s.admin1 ? `${s.admin1}, ` : ""}{s.country}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {error && (
+        <p className="text-red-400 text-sm font-medium mb-4">{error}</p>
+      )}
 
-      {/* ERROR STATE */}
-      {error && <p className="text-red-400 text-sm font-medium mb-4">{error}</p>}
-
-      {/* LOADING STATE */}
       {loading && (
         <p className="text-slate-400 animate-pulse">Fetching Weather...</p>
       )}
 
-      {/* SUCCESS STATE */}
       {weather && !loading && (
         <>
           <div className="text-slate-400 text-sm mb-1">{locationName}</div>
@@ -196,7 +117,7 @@ const Weather = () => {
       )}
 
       {!weather && !loading && !error && (
-        <p className="text-slate-500 italic">Type to find a city</p>
+        <p className="text-slate-500 italic">Use 'weather &lt;city&gt;' in the prompt</p>
       )}
     </div>
   );
