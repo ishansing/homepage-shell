@@ -44,14 +44,14 @@ export const useTodos = () => {
       );
     };
 
-    window.addEventListener("add-todo" as any, handleAddTodo as any);
-    window.addEventListener("remove-todo" as any, handleRemoveTodo as any);
-    window.addEventListener("toggle-todo" as any, handleToggleTodo as any);
+    window.addEventListener("add-todo", handleAddTodo as EventListener);
+    window.addEventListener("remove-todo", handleRemoveTodo as EventListener);
+    window.addEventListener("toggle-todo", handleToggleTodo as EventListener);
 
     return () => {
-      window.removeEventListener("add-todo" as any, handleAddTodo as any);
-      window.removeEventListener("remove-todo" as any, handleRemoveTodo as any);
-      window.removeEventListener("toggle-todo" as any, handleToggleTodo as any);
+      window.removeEventListener("add-todo", handleAddTodo as EventListener);
+      window.removeEventListener("remove-todo", handleRemoveTodo as EventListener);
+      window.removeEventListener("toggle-todo", handleToggleTodo as EventListener);
     };
   }, []);
 
@@ -67,7 +67,6 @@ export const useTodos = () => {
     window.dispatchEvent(new CustomEvent("toggle-todo", { detail: text }));
   };
 
-  // Internal toggle for the UI checkbox (by ID)
   const toggleTodoById = (id: number) => {
     setTodos(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };

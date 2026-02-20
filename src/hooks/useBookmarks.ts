@@ -51,12 +51,12 @@ export const useBookmarks = () => {
       setBookmarks((prev) => prev.filter((b) => b.name !== name));
     };
 
-    window.addEventListener("add-bookmark" as any, handleAddBookmark as any);
-    window.addEventListener("remove-bookmark" as any, handleRemoveBookmark as any);
+    window.addEventListener("add-bookmark", handleAddBookmark as EventListener);
+    window.addEventListener("remove-bookmark", handleRemoveBookmark as EventListener);
     
     return () => {
-      window.removeEventListener("add-bookmark" as any, handleAddBookmark as any);
-      window.removeEventListener("remove-bookmark" as any, handleRemoveBookmark as any);
+      window.removeEventListener("add-bookmark", handleAddBookmark as EventListener);
+      window.removeEventListener("remove-bookmark", handleRemoveBookmark as EventListener);
     };
   }, []);
 

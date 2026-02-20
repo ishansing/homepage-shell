@@ -71,22 +71,32 @@ const Weather = () => {
           setLocationName(fullName);
           localStorage.setItem(
             "last_weather_location",
-            JSON.stringify({ lat: loc.latitude, lon: loc.longitude, name: fullName }),
+            JSON.stringify({
+              lat: loc.latitude,
+              lon: loc.longitude,
+              name: fullName,
+            }),
           );
           await fetchWeather(loc.latitude, loc.longitude);
         } else {
           setError("City not found");
         }
-      } catch (err) {
+      } catch {
         setError("Failed to fetch location");
       } finally {
         setLoading(false);
       }
     };
 
-    window.addEventListener("set-weather-location" as any, handleSetLocation as any);
+    window.addEventListener(
+      "set-weather-location",
+      handleSetLocation as unknown as EventListener,
+    );
     return () => {
-      window.removeEventListener("set-weather-location" as any, handleSetLocation as any);
+      window.removeEventListener(
+        "set-weather-location",
+        handleSetLocation as unknown as EventListener,
+      );
     };
   }, []);
 
@@ -117,7 +127,9 @@ const Weather = () => {
       )}
 
       {!weather && !loading && !error && (
-        <p className="text-slate-500 italic">Use 'weather &lt;city&gt;' in the prompt</p>
+        <p className="text-slate-500 italic">
+          Use 'weather &lt;city&gt;' in the prompt
+        </p>
       )}
     </div>
   );
