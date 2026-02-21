@@ -7,6 +7,9 @@ export interface RemoveBookmarkEvent extends CustomEvent<string> {}
 
 export interface SetWeatherLocationEvent extends CustomEvent<string> {}
 
+export interface PomoStartEvent extends CustomEvent<{ focus: number; break: number }> {}
+export interface PomoEndEvent extends CustomEvent<void> {}
+
 declare global {
   interface WindowEventMap {
     "add-todo": AddTodoEvent;
@@ -15,5 +18,7 @@ declare global {
     "add-bookmark": AddBookmarkEvent;
     "remove-bookmark": RemoveBookmarkEvent;
     "set-weather-location": SetWeatherLocationEvent;
+    "pomo-start": PomoStartEvent;
+    "pomo-end": PomoEndEvent;
   }
 }

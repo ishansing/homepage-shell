@@ -1,10 +1,31 @@
+import { useState, useEffect } from "react";
 import Bookmarks from "./components/Bookmarks";
 import Clock from "./components/Clock";
+import Pomodoro from "./components/Pomodoro";
 import TodoList from "./components/TodoList";
 import Weather from "./components/Weather";
 import CmdPrompt from "./components/CmdPrompt";
 
 function App() {
+  const [pomoSettings, setPomoSettings] = useState<{ focus: number; break: number } | null>(null);
+
+  useEffect(() => {
+    const handlePomoStart = (event: CustomEvent<{ focus: number; break: number }>) => {
+      setPomoSettings(event.detail);
+    };
+    const handlePomoEnd = () => {
+      setPomoSettings(null);
+    };
+
+    window.addEventListener("pomo-start", handlePomoStart as EventListener);
+    window.addEventListener("pomo-end", handlePomoEnd);
+
+    return () => {
+      window.removeEventListener("pomo-start", handlePomoStart as EventListener);
+      window.removeEventListener("pomo-end", handlePomoEnd);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-neutral-950 text-slate-100 p-8">
       {/* Grid Container */}
@@ -12,7 +33,15 @@ function App() {
         {/* Left Column: Time & Weather */}
         <div className="space-y-8">
           <div className="p-6 bg-neutral-950 rounded-xl  ">
-            <Clock />
+            {pomoSettings ? (
+              <Pomodoro 
+                key={`${pomoSettings.focus}-${pomoSettings.break}`}
+                focusMinutes={pomoSettings.focus} 
+                breakMinutes={pomoSettings.break} 
+              />
+            ) : (
+              <Clock />
+            )}
           </div>
 
           <div className="p-6 bg-neutral-950 rounded-xl  ">

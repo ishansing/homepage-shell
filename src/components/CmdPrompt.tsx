@@ -47,6 +47,8 @@ const CmdPrompt: React.FC = () => {
           "  bm add <url> <name> - Add bookmark",
           "  bm rm <name>        - Remove bookmark",
           "  weather <city>      - Set weather location",
+          "  pomo start <f> <b>  - Start pomodoro timer (focus, break minutes)",
+          "  pomo end            - Stop pomodoro and show clock",
           "  ls                  - List bookmarks",
           "  g <query>           - Search Google",
           "  p <query>           - Search Perplexity",
@@ -128,6 +130,26 @@ const CmdPrompt: React.FC = () => {
           setHistory((prev) => [...prev, `Setting weather location to: ${city}`]);
         } else {
           setHistory((prev) => [...prev, "[Error] Usage: weather <city>"]);
+        }
+        break;
+      }
+      case "pomo": {
+        const subPomoCmd = args[0]?.toLowerCase();
+        if (subPomoCmd === "start") {
+          const focus = parseInt(args[1]) || 25;
+          const breakMins = parseInt(args[2]) || 5;
+          window.dispatchEvent(new CustomEvent("pomo-start", { 
+            detail: { focus, break: breakMins } 
+          }));
+          setHistory((prev) => [
+            ...prev, 
+            `[Success] Pomodoro started: ${focus}m focus, ${breakMins}m break`
+          ]);
+        } else if (subPomoCmd === "end" || subPomoCmd === "stop") {
+          window.dispatchEvent(new CustomEvent("pomo-end"));
+          setHistory((prev) => [...prev, "[Success] Pomodoro ended."]);
+        } else {
+          setHistory((prev) => [...prev, "[Error] Usage: pomo start <focus> <break> or pomo end"]);
         }
         break;
       }
