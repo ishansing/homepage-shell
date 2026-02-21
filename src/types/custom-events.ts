@@ -10,6 +10,8 @@ export interface SetWeatherLocationEvent extends CustomEvent<string> {}
 export interface PomoStartEvent extends CustomEvent<{ focus: number; break: number }> {}
 export interface PomoEndEvent extends CustomEvent<void> {}
 
+export interface ShowCalendarEvent extends CustomEvent<{ month?: number; year?: number; fullYear?: boolean }> {}
+
 declare global {
   interface WindowEventMap {
     "add-todo": AddTodoEvent;
@@ -20,5 +22,6 @@ declare global {
     "set-weather-location": SetWeatherLocationEvent;
     "pomo-start": PomoStartEvent;
     "pomo-end": PomoEndEvent;
+    "show-calendar": ShowCalendarEvent;
   }
 }

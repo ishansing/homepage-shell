@@ -5,9 +5,11 @@ import Pomodoro from "./components/Pomodoro";
 import TodoList from "./components/TodoList";
 import Weather from "./components/Weather";
 import CmdPrompt from "./components/CmdPrompt";
+import CalendarToast from "./components/CalendarToast";
 
 function App() {
   const [pomoSettings, setPomoSettings] = useState<{ focus: number; break: number } | null>(null);
+  const [calendarConfig, setCalendarConfig] = useState<{ month?: number; year?: number; fullYear?: boolean } | null>(null);
 
   useEffect(() => {
     const handlePomoStart = (event: CustomEvent<{ focus: number; break: number }>) => {
@@ -16,18 +18,29 @@ function App() {
     const handlePomoEnd = () => {
       setPomoSettings(null);
     };
+    const handleShowCalendar = (event: CustomEvent<{ month?: number; year?: number; fullYear?: boolean }>) => {
+      setCalendarConfig(event.detail);
+    };
 
     window.addEventListener("pomo-start", handlePomoStart as EventListener);
     window.addEventListener("pomo-end", handlePomoEnd);
+    window.addEventListener("show-calendar", handleShowCalendar as EventListener);
 
     return () => {
       window.removeEventListener("pomo-start", handlePomoStart as EventListener);
       window.removeEventListener("pomo-end", handlePomoEnd);
+      window.removeEventListener("show-calendar", handleShowCalendar as EventListener);
     };
   }, []);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-slate-100 p-8">
+      {calendarConfig && (
+        <CalendarToast 
+          {...calendarConfig} 
+          onClose={() => setCalendarConfig(null)} 
+        />
+      )}
       {/* Grid Container */}
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Column: Time & Weather */}

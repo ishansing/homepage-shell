@@ -11,10 +11,17 @@ const getWeatherDescription = (code: number): string => {
   return "Unknown";
 };
 
+const getAqiDescription = (aqi: number): { text: string; color: string } => {
+  if (aqi <= 50) return { text: "Good", color: "text-green-400" };
+  if (aqi <= 100) return { text: "Moderate", color: "text-yellow-400" };
+  if (aqi <= 150) return { text: "Sensitive", color: "text-orange-400" };
+  if (aqi <= 200) return { text: "Unhealthy", color: "text-red-400" };
+  if (aqi <= 300) return { text: "Very Unhealthy", color: "text-purple-400" };
+  return { text: "Hazardous", color: "text-rose-600" };
+};
+
 interface CurrentWeather {
   temperature: number;
-  windspeed: number;
-  winddirection: number;
   weathercode: number;
   is_day: number;
   time: string;
@@ -22,6 +29,7 @@ interface CurrentWeather {
 
 const Weather = () => {
   const [weather, setWeather] = useState<CurrentWeather | null>(null);
+  const [aqi, setAqi] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationName, setLocationName] = useState<string | null>(null);
@@ -30,15 +38,25 @@ const Weather = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`,
-      );
-      if (!response.ok) throw new Error("Weather fetch failed");
-      const data = await response.json();
-      setWeather(data.current_weather);
+      const [weatherRes, aqiRes] = await Promise.all([
+        fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`,
+        ),
+        fetch(
+          `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi`,
+        ),
+      ]);
+
+      if (!weatherRes.ok || !aqiRes.ok) throw new Error("Fetch failed");
+
+      const weatherData = await weatherRes.json();
+      const aqiData = await aqiRes.json();
+
+      setWeather(weatherData.current_weather);
+      setAqi(aqiData.current?.us_aqi ?? null);
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : "Failed to fetch weather");
+      setError(err instanceof Error ? err.message : "Failed to fetch data");
     } finally {
       setLoading(false);
     }
@@ -120,9 +138,11 @@ const Weather = () => {
           <div className="text-slate-300 text-lg font-medium">
             {getWeatherDescription(weather.weathercode)}
           </div>
-          <div className="text-slate-500 text-sm mt-1">
-            Wind: {weather.windspeed} km/h
-          </div>
+          {aqi !== null && (
+            <div className="text-slate-500 text-xs mt-2 uppercase tracking-widest font-mono">
+              AQI: <span className={getAqiDescription(aqi).color}>{aqi}</span> — {getAqiDescription(aqi).text}
+            </div>
+          )}
         </>
       )}
 

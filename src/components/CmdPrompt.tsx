@@ -49,6 +49,7 @@ const CmdPrompt: React.FC = () => {
           "  weather <city>      - Set weather location",
           "  pomo start <f> <b>  - Start pomodoro timer (focus, break minutes)",
           "  pomo end            - Stop pomodoro and show clock",
+          "  cal [m/y]           - Show calendar (current, month, or year)",
           "  ls                  - List bookmarks",
           "  g <query>           - Search Google",
           "  p <query>           - Search Perplexity",
@@ -150,6 +151,43 @@ const CmdPrompt: React.FC = () => {
           setHistory((prev) => [...prev, "[Success] Pomodoro ended."]);
         } else {
           setHistory((prev) => [...prev, "[Error] Usage: pomo start <focus> <break> or pomo end"]);
+        }
+        break;
+      }
+      case "cal":
+      case "calendar": {
+        const now = new Date();
+        const arg = args[0]?.toLowerCase();
+        if (!arg) {
+          // Current month
+          window.dispatchEvent(new CustomEvent("show-calendar", { 
+            detail: { month: now.getMonth(), year: now.getFullYear(), fullYear: false } 
+          }));
+          setHistory((prev) => [...prev, `[Success] Showing calendar for ${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`]);
+        } else if (arg === "year" || (parseInt(arg) > 12 && parseInt(arg) < 3000)) {
+          // Full year
+          const targetYear = parseInt(arg) || now.getFullYear();
+          window.dispatchEvent(new CustomEvent("show-calendar", { 
+            detail: { year: targetYear, fullYear: true } 
+          }));
+          setHistory((prev) => [...prev, `[Success] Showing calendar for year ${targetYear}`]);
+        } else {
+          // Specific month
+          let monthIndex = parseInt(arg) - 1;
+          if (isNaN(monthIndex)) {
+            const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+            monthIndex = months.findIndex(m => arg.startsWith(m));
+          }
+          if (monthIndex >= 0 && monthIndex < 12) {
+            const targetYear = parseInt(args[1]) || now.getFullYear();
+            window.dispatchEvent(new CustomEvent("show-calendar", { 
+              detail: { month: monthIndex, year: targetYear, fullYear: false } 
+            }));
+            const mName = new Date(0, monthIndex).toLocaleString('default', { month: 'long' });
+            setHistory((prev) => [...prev, `[Success] Showing calendar for ${mName} ${targetYear}`]);
+          } else {
+            setHistory((prev) => [...prev, "[Error] Usage: cal [month/year] (e.g., 'cal', 'cal 12', 'cal year', 'cal may 2025')"]);
+          }
         }
         break;
       }
