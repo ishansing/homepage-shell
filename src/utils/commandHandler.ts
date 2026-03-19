@@ -1,5 +1,10 @@
 import type { Todo, Link, Note, PomodoroSettings, CalendarConfig } from "../context/DashboardContext";
 
+/**
+ * COMMAND CONTEXT
+ * This interface defines the API available to command executors.
+ * It is populated by the CmdPrompt component using the useDashboard hook.
+ */
 export interface CommandContext {
   bookmarks: Link[];
   addBookmark: (name: string, url: string) => void;
@@ -16,8 +21,19 @@ export interface CommandContext {
   setCalendarConfig: (config: CalendarConfig | null) => void;
 }
 
+/**
+ * COMMAND RESULT
+ * output: Array of strings to be printed in the terminal.
+ * clear: If true, clears the terminal history.
+ */
 export type CommandResult = { output?: string[]; clear?: boolean };
 
+/**
+ * COMMAND DEFINITION
+ * name: The primary keyword to trigger the command.
+ * aliases: Alternative keywords (e.g., 'b' for 'bookmark').
+ * execute: The function that performs the logic and returns a result.
+ */
 export interface CommandDefinition {
   name: string;
   aliases?: string[];
@@ -25,6 +41,9 @@ export interface CommandDefinition {
   execute: (args: string[], context: CommandContext) => CommandResult;
 }
 
+/**
+ * REGISTRY: ALL SYSTEM COMMANDS
+ */
 export const commands: CommandDefinition[] = [
   {
     name: "help",
@@ -55,7 +74,7 @@ export const commands: CommandDefinition[] = [
   {
     name: "note",
     aliases: ["n"],
-    description: "Quick notes",
+    description: "Quick notes management",
     execute: (args, { addNote, clearNotes, removeNoteByText }) => {
       const subNoteCmd = args[0]?.toLowerCase();
       
@@ -94,7 +113,7 @@ export const commands: CommandDefinition[] = [
   },
   {
     name: "ls",
-    description: "List bookmarks",
+    description: "List all bookmarks",
     execute: (_, { bookmarks }) => {
       if (bookmarks.length > 0) {
         return {
@@ -110,7 +129,7 @@ export const commands: CommandDefinition[] = [
   {
     name: "todo",
     aliases: ["t"],
-    description: "Manage todos",
+    description: "Task management",
     execute: (args, { addTodo, removeTodo, toggleTodo }) => {
       const subTodoCmd = args[0]?.toLowerCase();
       const todoText = args.slice(1).join(" ");
@@ -146,7 +165,7 @@ export const commands: CommandDefinition[] = [
   {
     name: "bookmark",
     aliases: ["b", "bm"],
-    description: "Manage bookmarks",
+    description: "Bookmark management",
     execute: (args, { addBookmark, removeBookmark }) => {
       const subBmCmd = args[0]?.toLowerCase();
       if (subBmCmd === "add") {
@@ -176,7 +195,8 @@ export const commands: CommandDefinition[] = [
     execute: (args) => {
       const city = args.join(" ");
       if (city) {
-        // Dispatching custom event because Weather.tsx still listens for it (will refactor later)
+        // We use a custom event here because the Weather component 
+        // needs to trigger an imperative geocoding sequence.
         window.dispatchEvent(
           new CustomEvent("set-weather-location", { detail: city }),
         );
@@ -187,7 +207,7 @@ export const commands: CommandDefinition[] = [
   },
   {
     name: "pomo",
-    description: "Pomodoro timer",
+    description: "Pomodoro timer management",
     execute: (args, { setPomoSettings }) => {
       const subPomoCmd = args[0]?.toLowerCase();
       if (subPomoCmd === "start") {
@@ -212,7 +232,7 @@ export const commands: CommandDefinition[] = [
   {
     name: "cal",
     aliases: ["calendar"],
-    description: "Show calendar",
+    description: "Calendar display",
     execute: (args, { setCalendarConfig }) => {
       const now = new Date();
       const arg = args[0]?.toLowerCase();
@@ -238,18 +258,8 @@ export const commands: CommandDefinition[] = [
       let monthIndex = parseInt(arg) - 1;
       if (isNaN(monthIndex)) {
         const months = [
-          "jan",
-          "feb",
-          "mar",
-          "apr",
-          "may",
-          "jun",
-          "jul",
-          "aug",
-          "sep",
-          "oct",
-          "nov",
-          "dec",
+          "jan", "feb", "mar", "apr", "may", "jun", 
+          "jul", "aug", "sep", "oct", "nov", "dec"
         ];
         monthIndex = months.findIndex((m) => arg.startsWith(m));
       }
@@ -308,11 +318,16 @@ export const commands: CommandDefinition[] = [
   },
   {
     name: "clear",
-    description: "Clear terminal",
+    aliases: ["c"],
+    description: "Clear terminal history",
     execute: () => ({ clear: true }),
   },
 ];
 
+/**
+ * ENGINE: Command Router
+ * Parses raw input and matches it against registry or existing bookmarks.
+ */
 export const executeCommand = (
   cmdInput: string,
   context: CommandContext,
@@ -321,6 +336,7 @@ export const executeCommand = (
   const commandName = parts[0].toLowerCase();
   const args = parts.slice(1);
 
+  // 1. Try to find a registered command
   const command = commands.find(
     (c) => c.name === commandName || c.aliases?.includes(commandName),
   );
@@ -329,20 +345,24 @@ export const executeCommand = (
     return command.execute(args, context);
   }
 
-  // Check if commandName matches a bookmark
+  // 2. Try to match a bookmark name directly
   const bookmark = context.bookmarks.find(
     (b) => b.name.toLowerCase() === commandName,
   );
 
   if (bookmark) {
     const url = bookmark.url.includes("://") ? bookmark.url : `https://${bookmark.url}`;
-    // Security: Validate protocol to prevent javascript: XSS
+    
+    // SECURITY: Protocol validation to prevent 'javascript:' injection
     if (url.toLowerCase().startsWith("javascript:")) {
-      return { output: ["[Error] Blocked execution of javascript: URL"] };
+      console.error("[Security] Blocked bookmark with javascript: protocol.");
+      return { output: ["[Error] Blocked execution of unsafe URL."] };
     }
+    
     window.open(url, "_blank");
     return { output: [`Opening: ${bookmark.name}...`] };
   }
 
+  // 3. Fallback for unknown input
   return { output: [`[Error] Unknown command: ${commandName}`] };
 };
