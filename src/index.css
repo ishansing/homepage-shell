@@ -4,11 +4,35 @@
   --color-accent: #6b21a8;
   --color-accent-dark: #4c1d95;
   --color-accent-light: #a855f7;
+  --font-ndot: "NDot55", system-ui;
+  --font-bebas: "Bebas", system-ui;
+  --font-poppins: "Poppins", system-ui;
+}
+
+@font-face {
+  font-family: "NDot55";
+  src: url("/Fonts/ndot55.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Bebas";
+  src: url("/Fonts/Bebas.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/Fonts/poppins_regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
 }
 
 @layer base {
   body {
-    @apply bg-black text-slate-400 antialiased selection:bg-accent/30;
+    @apply bg-black text-slate-400 antialiased selection:bg-accent/30 font-poppins;
   }
 
   /* Custom Scrollbar for minimal look */

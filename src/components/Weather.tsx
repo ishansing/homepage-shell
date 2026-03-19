@@ -16,7 +16,8 @@ const getAqiDescription = (aqi: number): { text: string; color: string } => {
   if (aqi <= 100) return { text: "Moderate", color: "text-yellow-600/50" };
   if (aqi <= 150) return { text: "Sensitive", color: "text-orange-600/50" };
   if (aqi <= 200) return { text: "Unhealthy", color: "text-red-600/50" };
-  if (aqi <= 300) return { text: "Very Unhealthy", color: "text-purple-600/50" };
+  if (aqi <= 300)
+    return { text: "Very Unhealthy", color: "text-purple-600/50" };
   return { text: "Hazardous", color: "text-rose-800/50" };
 };
 
@@ -60,6 +61,20 @@ const Weather = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getWeatherIcon = (code: number) => {
+    // Basic mapping from Open-Meteo to Nothing Icons
+    // Open-Meteo codes: 0 (Clear), 1-3 (Partly Cloudy), 45-48 (Fog), 51-67 (Rain), etc.
+    // Nothing Icons: 32 (Sunny), 30 (Partly Cloudy), 20 (Foggy), 12 (Rain), etc.
+    if (code === 0) return "/Images/Nothing/32.png";
+    if (code >= 1 && code <= 3) return "/Images/Nothing/30.png";
+    if (code >= 45 && code <= 48) return "/Images/Nothing/20.png";
+    if (code >= 51 && code <= 67) return "/Images/Nothing/12.png";
+    if (code >= 71 && code <= 77) return "/Images/Nothing/16.png";
+    if (code >= 80 && code <= 82) return "/Images/Nothing/11.png";
+    if (code >= 95 && code <= 99) return "/Images/Nothing/4.png";
+    return "/Images/Nothing/26.png"; // Default Cloudy
   };
 
   useEffect(() => {
@@ -121,27 +136,47 @@ const Weather = () => {
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4 w-full overflow-hidden">
       {error && (
-        <p className="text-red-900/80 text-[10px] font-mono uppercase mb-4 truncate w-full">{error}</p>
+        <p className="text-red-900/80 text-[13px] font-ndot uppercase mb-4 truncate w-full">
+          {error}
+        </p>
       )}
 
       {loading && (
-        <p className="text-slate-600 animate-pulse text-[10px] font-mono uppercase tracking-widest">Fetching...</p>
+        <p className="text-slate-600 animate-pulse text-[13px] font-ndot uppercase tracking-widest">
+          Fetching...
+        </p>
       )}
 
       {weather && !loading && (
-        <div className="w-full">
-          <div className="text-slate-500 text-[10px] mb-1 font-mono uppercase tracking-tight truncate px-4">{locationName}</div>
-          <div className="text-5xl font-bold text-white mb-2 font-mono tracking-tighter">
-            {Math.round(weather.temperature)}
-            <span className="text-2xl text-slate-500 align-top ml-1">°</span>
+        <div className="w-full flex flex-col items-center">
+          <div className="text-slate-500 text-[13px] mb-1 font-bebas uppercase tracking-widest truncate px-4 w-full">
+            {locationName}
           </div>
-          <div className="text-slate-400 text-sm uppercase tracking-[0.2em] font-medium truncate px-4">
+
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <img
+              src={getWeatherIcon(weather.weathercode)}
+              alt="weather icon"
+              className="w-16 h-16 object-contain filter brightness-150 grayscale-[0.8]"
+            />
+            <div className="text-6xl font-normal text-white font-ndot tracking-tighter">
+              {Math.round(weather.temperature)}
+              <span className="text-2xl text-slate-500 align-top ml-1">°</span>
+            </div>
+          </div>
+
+          <div className="text-slate-400 text-s font-bebas uppercase tracking-[0.3em] font-medium truncate px-4 w-full">
             {getWeatherDescription(weather.weathercode)}
           </div>
+
           {aqi !== null && (
-            <div className="text-slate-600 text-[10px] mt-4 uppercase tracking-[0.1em] font-mono flex items-center justify-center gap-2">
+            <div className="text-slate-600 text-[13px] mt-4 uppercase tracking-[0.1em] font-ndot flex items-center justify-center gap-2">
               <span>AQI</span>
-              <span className={`px-1.5 py-0.5 ${getAqiDescription(aqi).color} border border-current/10 font-bold`}>{aqi}</span>
+              <span
+                className={`px-1.5 py-0.5 ${getAqiDescription(aqi).color} border border-current/10 font-bold`}
+              >
+                {aqi}
+              </span>
               <span className="opacity-30">—</span>
               <span className="opacity-60">{getAqiDescription(aqi).text}</span>
             </div>
@@ -150,7 +185,7 @@ const Weather = () => {
       )}
 
       {!weather && !loading && !error && (
-        <p className="text-slate-700 text-[10px] uppercase tracking-widest font-mono italic">
+        <p className="text-slate-700 text-[10px] uppercase tracking-widest font-ndot italic">
           Set location via prompt
         </p>
       )}

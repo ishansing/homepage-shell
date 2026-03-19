@@ -71,12 +71,13 @@ const HackerNews: React.FC = () => {
                   <div className="flex items-start">
                     <span className="text-slate-500 mr-2">{index + 1}.</span>
                     <div className="flex-1 overflow-hidden">
-                      <h3 className="text-sm font-medium text-slate-200 group-hover:text-accent line-clamp-2 transition-colors duration-300">
+                      <h3 className="text-sm font-medium text-slate-200 group-hover:text-accent line-clamp-2 transition-colors duration-300 font-poppins">
                         {story.title}
                       </h3>
-                      <div className="text-[10px] text-slate-500 mt-1 flex gap-2 font-mono uppercase tracking-tight">
-                        <span>{story.score} pts</span>
-                        <span>by {story.by}</span>
+                      <div className="text-[10px] text-slate-600 mt-1 flex gap-2 font-bebas uppercase tracking-widest">
+                        <span>{story.score} PTS</span>
+                        <span className="opacity-30">/</span>
+                        <span>BY {story.by.toUpperCase()}</span>
                       </div>
                     </div>
                   </div>

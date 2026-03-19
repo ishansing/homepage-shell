@@ -37,17 +37,16 @@ const Clock = () => {
   // -----------------------------------------------------------------
   return (
     <div className="text-center w-full overflow-hidden">
-      <div className="text-5xl font-bold tracking-tighter text-white font-mono">
+      <div className="text-7xl font-normal tracking-tighter text-white font-ndot uppercase">
         {time.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
-          second: "2-digit",
         })}
       </div>
-      <div className="text-slate-500 mt-2 text-sm uppercase tracking-[0.2em] font-medium truncate px-2">
+      <div className="text-slate-500 mt-2 text-sm font-bebas tracking-[0.2em] uppercase truncate px-2">
         {time.toLocaleDateString(undefined, {
-          weekday: "long",
-          month: "long",
+          weekday: "short",
+          month: "short",
           day: "numeric",
         })}
       </div>

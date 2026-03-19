@@ -82,15 +82,15 @@ const Pomodoro: React.FC<PomodoroProps> = ({ focusMinutes, breakMinutes }) => {
 
   return (
     <div className="text-center w-full overflow-hidden">
-      <div className="text-5xl font-bold tracking-tighter text-white font-mono">
+      <div className="text-6xl font-normal tracking-tighter text-white font-ndot uppercase">
         {formatTime(session.timeLeft)}
       </div>
       <div
-        className={`mt-2 text-sm font-bold tracking-[0.2em] uppercase ${session.isFocus ? "text-accent" : "text-slate-500"}`}
+        className={`mt-2 text-sm font-normal tracking-[0.2em] uppercase font-bebas ${session.isFocus ? "text-accent" : "text-slate-500"}`}
       >
-        {session.isFocus ? "Focus" : "Break"}
+        {session.isFocus ? "Focus Session" : "Break Time"}
       </div>
-      <div className="text-slate-600 text-[10px] mt-2 font-mono uppercase tracking-tight truncate px-2">
+      <div className="text-slate-600 text-[10px] mt-2 font-bebas uppercase tracking-widest truncate px-2">
         Total focus: {formatTotalTime(session.totalFocusSeconds)}
       </div>
     </div>
