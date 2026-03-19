@@ -17,12 +17,14 @@ const HackerNews: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchTopStories = async () => {
       try {
         setLoading(true);
         // Fetch top story IDs
         const res = await fetch(
           "https://hacker-news.firebaseio.com/v0/topstories.json",
+          { signal: controller.signal }
         );
         if (!res.ok) throw new Error("Failed to fetch top stories");
         const storyIds: number[] = await res.json();
@@ -34,6 +36,7 @@ const HackerNews: React.FC = () => {
         const storyPromises = top10Ids.map(async (id) => {
           const detailRes = await fetch(
             `https://hacker-news.firebaseio.com/v0/item/${id}.json`,
+            { signal: controller.signal }
           );
           if (!detailRes.ok) throw new Error(`Failed to fetch story ${id}`);
           return await detailRes.json();
@@ -42,6 +45,7 @@ const HackerNews: React.FC = () => {
         const storyDetails = await Promise.all(storyPromises);
         setStories(storyDetails);
       } catch (err: any) {
+        if (err.name === "AbortError") return;
         setError(err.message || "An error occurred");
       } finally {
         setLoading(false);
@@ -49,6 +53,7 @@ const HackerNews: React.FC = () => {
     };
 
     fetchTopStories();
+    return () => controller.abort();
   }, []);
 
   return (

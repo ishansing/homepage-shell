@@ -1,8 +1,8 @@
 import React from "react";
-import { useNotes } from "../hooks/useNotes";
+import { useDashboard } from "../context/DashboardContext";
 
 const Notes: React.FC = () => {
-  const { notes, removeNoteByText } = useNotes();
+  const { notes, removeNoteByText } = useDashboard();
 
   const formatTime = (time: number) => {
     return new Date(time).toLocaleTimeString([], {

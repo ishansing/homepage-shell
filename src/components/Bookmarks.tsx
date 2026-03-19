@@ -1,7 +1,7 @@
-import { useBookmarks } from "../hooks/useBookmarks";
+import { useDashboard } from "../context/DashboardContext";
 
 const Bookmarks = () => {
-  const { bookmarks, removeBookmark } = useBookmarks();
+  const { bookmarks, removeBookmark } = useDashboard();
 
   const getRemixIconClass = (name: string, url: string) => {
     const lowerName = name.toLowerCase().trim();

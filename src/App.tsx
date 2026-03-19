@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import Bookmarks from "./components/Bookmarks";
 import Clock from "./components/Clock";
 import Pomodoro from "./components/Pomodoro";
@@ -7,34 +6,10 @@ import Weather from "./components/Weather";
 import Notes from "./components/Notes";
 import CmdPrompt from "./components/CmdPrompt";
 import HackerNews from "./components/HackerNews";
+import { useDashboard } from "./context/DashboardContext";
 
 function App() {
-  const [pomoSettings, setPomoSettings] = useState<{
-    focus: number;
-    break: number;
-  } | null>(null);
-
-  useEffect(() => {
-    const handlePomoStart = (
-      event: CustomEvent<{ focus: number; break: number }>,
-    ) => {
-      setPomoSettings(event.detail);
-    };
-    const handlePomoEnd = () => {
-      setPomoSettings(null);
-    };
-
-    window.addEventListener("pomo-start", handlePomoStart as EventListener);
-    window.addEventListener("pomo-end", handlePomoEnd);
-
-    return () => {
-      window.removeEventListener(
-        "pomo-start",
-        handlePomoStart as EventListener,
-      );
-      window.removeEventListener("pomo-end", handlePomoEnd);
-    };
-  }, []);
+  const { pomoSettings } = useDashboard();
 
   return (
     <div className="min-h-screen bg-black text-slate-100 p-2 overflow-hidden font-mono">

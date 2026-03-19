@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useDashboard } from "../context/DashboardContext";
 
 const getWeatherDescription = (code: number): string => {
   if (code === 0) return "Clear sky";
@@ -29,22 +30,25 @@ interface CurrentWeather {
 }
 
 const Weather = () => {
+  const { locationName, setLocationName } = useDashboard();
   const [weather, setWeather] = useState<CurrentWeather | null>(null);
   const [aqi, setAqi] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [locationName, setLocationName] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const fetchWeather = async (lat: number, lon: number) => {
+  const fetchWeather = useCallback(async (lat: number, lon: number, signal: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
       const [weatherRes, aqiRes] = await Promise.all([
         fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`,
+          { signal }
         ),
         fetch(
           `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi`,
+          { signal }
         ),
       ]);
 
@@ -56,17 +60,54 @@ const Weather = () => {
       setWeather(weatherData.current_weather);
       setAqi(aqiData.current?.us_aqi ?? null);
     } catch (err) {
+      if ((err as Error).name === "AbortError") return;
       console.error(err);
       setError(err instanceof Error ? err.message : "Failed to fetch data");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const handleSetLocation = useCallback(async (cityName: string) => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+          cityName,
+        )}&count=1&language=en&format=json`,
+        { signal }
+      );
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        const loc = data.results[0];
+        const fullName = `${loc.name}${loc.admin1 ? `, ${loc.admin1}` : ""}, ${loc.country}`;
+        setLocationName(fullName);
+        localStorage.setItem(
+          "last_weather_location",
+          JSON.stringify({
+            lat: loc.latitude,
+            lon: loc.longitude,
+            name: fullName,
+          }),
+        );
+        await fetchWeather(loc.latitude, loc.longitude, signal);
+      } else {
+        setError("City not found");
+      }
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return;
+      setError("Failed to fetch location");
+    } finally {
+      setLoading(false);
+    }
+  }, [setLocationName, fetchWeather]);
 
   const getWeatherIcon = (code: number) => {
-    // Basic mapping from Open-Meteo to Nothing Icons
-    // Open-Meteo codes: 0 (Clear), 1-3 (Partly Cloudy), 45-48 (Fog), 51-67 (Rain), etc.
-    // Nothing Icons: 32 (Sunny), 30 (Partly Cloudy), 20 (Foggy), 12 (Rain), etc.
     if (code === 0) return "/Images/Nothing/32.png";
     if (code >= 1 && code <= 3) return "/Images/Nothing/30.png";
     if (code >= 45 && code <= 48) return "/Images/Nothing/20.png";
@@ -80,58 +121,29 @@ const Weather = () => {
   useEffect(() => {
     const saved = localStorage.getItem("last_weather_location");
     if (saved) {
-      const { lat, lon, name } = JSON.parse(saved);
-      setLocationName(name);
-      fetchWeather(lat, lon);
+      try {
+        const { lat, lon, name } = JSON.parse(saved);
+        setLocationName(name);
+        const controller = new AbortController();
+        fetchWeather(lat, lon, controller.signal);
+        return () => controller.abort();
+      } catch (e) {
+        console.error("Failed to parse weather location", e);
+      }
     }
-  }, []);
+  }, [setLocationName, fetchWeather]);
 
   useEffect(() => {
-    const handleSetLocation = async (event: CustomEvent<string>) => {
-      const cityName = event.detail;
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-            cityName,
-          )}&count=1&language=en&format=json`,
-        );
-        const data = await response.json();
-        if (data.results && data.results.length > 0) {
-          const loc = data.results[0];
-          const fullName = `${loc.name}${loc.admin1 ? `, ${loc.admin1}` : ""}, ${loc.country}`;
-          setLocationName(fullName);
-          localStorage.setItem(
-            "last_weather_location",
-            JSON.stringify({
-              lat: loc.latitude,
-              lon: loc.longitude,
-              name: fullName,
-            }),
-          );
-          await fetchWeather(loc.latitude, loc.longitude);
-        } else {
-          setError("City not found");
-        }
-      } catch {
-        setError("Failed to fetch location");
-      } finally {
-        setLoading(false);
-      }
+    const onSetLocation = (event: Event) => {
+      const customEvent = event as CustomEvent<string>;
+      handleSetLocation(customEvent.detail);
     };
-
-    window.addEventListener(
-      "set-weather-location",
-      handleSetLocation as unknown as EventListener,
-    );
+    window.addEventListener("set-weather-location", onSetLocation);
     return () => {
-      window.removeEventListener(
-        "set-weather-location",
-        handleSetLocation as unknown as EventListener,
-      );
+      window.removeEventListener("set-weather-location", onSetLocation);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     };
-  }, []);
+  }, [handleSetLocation]);
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4 w-full overflow-hidden">

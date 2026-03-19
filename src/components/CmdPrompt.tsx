@@ -1,26 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useBookmarks } from "../hooks/useBookmarks";
-import { useTodos } from "../hooks/useTodos";
-import { useNotes } from "../hooks/useNotes";
 import { executeCommand, type CommandContext } from "../utils/commandHandler";
 import CalendarView from "./CalendarToast";
+import { useDashboard } from "../context/DashboardContext";
 
 const CmdPrompt: React.FC = () => {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([
     "System initialized. Type 'help' for commands.",
   ]);
-  const [calendarConfig, setCalendarConfig] = useState<{
-    month?: number;
-    year?: number;
-    fullYear?: boolean;
-  } | null>(null);
+
+  const {
+    bookmarks, addBookmark, removeBookmark,
+    todos, addTodo, removeTodo, toggleTodo,
+    notes, addNote, clearNotes, removeNoteByText,
+    setPomoSettings, setCalendarConfig, calendarConfig
+  } = useDashboard();
 
   const outputRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { bookmarks, addBookmark, removeBookmark } = useBookmarks();
-  const { addTodo, removeTodo, toggleTodo } = useTodos();
-  const { addNote, clearNotes } = useNotes();
 
   useEffect(() => {
     if (outputRef.current) {
@@ -30,26 +27,17 @@ const CmdPrompt: React.FC = () => {
 
   useEffect(() => {
     const handleGlobalClick = () => {
+      // Fix: Don't steal focus if user is selecting text
+      const selection = window.getSelection();
+      if (selection && selection.toString().length > 0) return;
+      
       inputRef.current?.focus();
-    };
-    const handleShowCalendar = (
-      event: CustomEvent<{ month?: number; year?: number; fullYear?: boolean }>,
-    ) => {
-      setCalendarConfig(event.detail);
     };
 
     window.addEventListener("click", handleGlobalClick);
-    window.addEventListener(
-      "show-calendar",
-      handleShowCalendar as EventListener,
-    );
 
     return () => {
       window.removeEventListener("click", handleGlobalClick);
-      window.removeEventListener(
-        "show-calendar",
-        handleShowCalendar as EventListener,
-      );
     };
   }, []);
 
@@ -64,11 +52,16 @@ const CmdPrompt: React.FC = () => {
       bookmarks,
       addBookmark,
       removeBookmark,
+      todos,
       addTodo,
       removeTodo,
       toggleTodo,
+      notes,
       addNote,
       clearNotes,
+      removeNoteByText,
+      setPomoSettings,
+      setCalendarConfig,
     };
 
     const result = executeCommand(cmdInput, context);

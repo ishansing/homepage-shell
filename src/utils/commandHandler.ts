@@ -1,14 +1,19 @@
-import type { Link } from "../hooks/useBookmarks";
+import type { Todo, Link, Note, PomodoroSettings, CalendarConfig } from "../context/DashboardContext";
 
 export interface CommandContext {
   bookmarks: Link[];
   addBookmark: (name: string, url: string) => void;
   removeBookmark: (name: string) => void;
+  todos: Todo[];
   addTodo: (text: string) => void;
   removeTodo: (text: string) => void;
   toggleTodo: (text: string) => void;
+  notes: Note[];
   addNote: (text: string) => void;
   clearNotes: () => void;
+  removeNoteByText: (text: string) => void;
+  setPomoSettings: (settings: PomodoroSettings | null) => void;
+  setCalendarConfig: (config: CalendarConfig | null) => void;
 }
 
 export type CommandResult = { output?: string[]; clear?: boolean };
@@ -51,10 +56,10 @@ export const commands: CommandDefinition[] = [
     name: "note",
     aliases: ["n"],
     description: "Quick notes",
-    execute: (args, { addNote, clearNotes }) => {
+    execute: (args, { addNote, clearNotes, removeNoteByText }) => {
       const subNoteCmd = args[0]?.toLowerCase();
-
-      if (subNoteCmd === "c" || subNoteCmd === "clear") {
+      
+      if (subNoteCmd === "clear") {
         clearNotes();
         return { output: ["[Success] All notes cleared."] };
       }
@@ -71,14 +76,12 @@ export const commands: CommandDefinition[] = [
       if (subNoteCmd === "rm" || subNoteCmd === "remove") {
         const noteText = args.slice(1).join(" ");
         if (noteText) {
-          window.dispatchEvent(
-            new CustomEvent("remove-note-by-text", { detail: noteText }),
-          );
+          removeNoteByText(noteText);
           return { output: [`[Success] Note removed: ${noteText}`] };
         }
         return { output: ["[Error] Usage: note rm <text>"] };
       }
-
+      
       // Default to add if no subcommand or unknown subcommand
       const noteText = args.join(" ");
       if (noteText) {
@@ -86,11 +89,7 @@ export const commands: CommandDefinition[] = [
         return { output: [`[Success] Note added: ${noteText}`] };
       }
 
-      return {
-        output: [
-          "[Error] Usage: note <text>, note add <text>, note rm <text>, or note clear",
-        ],
-      };
+      return { output: ["[Error] Usage: note <text>, note add <text>, note rm <text>, or note clear"] };
     },
   },
   {
@@ -177,6 +176,7 @@ export const commands: CommandDefinition[] = [
     execute: (args) => {
       const city = args.join(" ");
       if (city) {
+        // Dispatching custom event because Weather.tsx still listens for it (will refactor later)
         window.dispatchEvent(
           new CustomEvent("set-weather-location", { detail: city }),
         );
@@ -188,16 +188,12 @@ export const commands: CommandDefinition[] = [
   {
     name: "pomo",
     description: "Pomodoro timer",
-    execute: (args) => {
+    execute: (args, { setPomoSettings }) => {
       const subPomoCmd = args[0]?.toLowerCase();
       if (subPomoCmd === "start") {
         const focus = parseInt(args[1]) || 25;
         const breakMins = parseInt(args[2]) || 5;
-        window.dispatchEvent(
-          new CustomEvent("pomo-start", {
-            detail: { focus, break: breakMins },
-          }),
-        );
+        setPomoSettings({ focus, break: breakMins });
         return {
           output: [
             `[Success] Pomodoro started: ${focus}m focus, ${breakMins}m break`,
@@ -205,7 +201,7 @@ export const commands: CommandDefinition[] = [
         };
       }
       if (subPomoCmd === "end" || subPomoCmd === "stop") {
-        window.dispatchEvent(new CustomEvent("pomo-end"));
+        setPomoSettings(null);
         return { output: ["[Success] Pomodoro ended."] };
       }
       return {
@@ -217,19 +213,15 @@ export const commands: CommandDefinition[] = [
     name: "cal",
     aliases: ["calendar"],
     description: "Show calendar",
-    execute: (args) => {
+    execute: (args, { setCalendarConfig }) => {
       const now = new Date();
       const arg = args[0]?.toLowerCase();
       if (!arg) {
-        window.dispatchEvent(
-          new CustomEvent("show-calendar", {
-            detail: {
-              month: now.getMonth(),
-              year: now.getFullYear(),
-              fullYear: false,
-            },
-          }),
-        );
+        setCalendarConfig({
+          month: now.getMonth(),
+          year: now.getFullYear(),
+          fullYear: false,
+        });
         return {
           output: [
             `[Success] Showing calendar for ${now.toLocaleString("default", { month: "long" })} ${now.getFullYear()}`,
@@ -238,11 +230,7 @@ export const commands: CommandDefinition[] = [
       }
       if (arg === "year" || (parseInt(arg) > 12 && parseInt(arg) < 3000)) {
         const targetYear = parseInt(arg) || now.getFullYear();
-        window.dispatchEvent(
-          new CustomEvent("show-calendar", {
-            detail: { year: targetYear, fullYear: true },
-          }),
-        );
+        setCalendarConfig({ year: targetYear, fullYear: true });
         return {
           output: [`[Success] Showing calendar for year ${targetYear}`],
         };
@@ -267,15 +255,11 @@ export const commands: CommandDefinition[] = [
       }
       if (monthIndex >= 0 && monthIndex < 12) {
         const targetYear = parseInt(args[1]) || now.getFullYear();
-        window.dispatchEvent(
-          new CustomEvent("show-calendar", {
-            detail: {
-              month: monthIndex,
-              year: targetYear,
-              fullYear: false,
-            },
-          }),
-        );
+        setCalendarConfig({
+          month: monthIndex,
+          year: targetYear,
+          fullYear: false,
+        });
         const mName = new Date(0, monthIndex).toLocaleString("default", {
           month: "long",
         });
@@ -324,7 +308,6 @@ export const commands: CommandDefinition[] = [
   },
   {
     name: "clear",
-    aliases: ["c"],
     description: "Clear terminal",
     execute: () => ({ clear: true }),
   },
@@ -352,9 +335,11 @@ export const executeCommand = (
   );
 
   if (bookmark) {
-    const url = bookmark.url.includes("://")
-      ? bookmark.url
-      : `https://${bookmark.url}`;
+    const url = bookmark.url.includes("://") ? bookmark.url : `https://${bookmark.url}`;
+    // Security: Validate protocol to prevent javascript: XSS
+    if (url.toLowerCase().startsWith("javascript:")) {
+      return { output: ["[Error] Blocked execution of javascript: URL"] };
+    }
     window.open(url, "_blank");
     return { output: [`Opening: ${bookmark.name}...`] };
   }

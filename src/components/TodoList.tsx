@@ -1,7 +1,7 @@
-import { useTodos } from "../hooks/useTodos";
+import { useDashboard } from "../context/DashboardContext";
 
 const TodoList = () => {
-  const { todos, toggleTodoById, removeTodoById } = useTodos();
+  const { todos, toggleTodoById, removeTodoById } = useDashboard();
 
   return (
     <div className="h-full flex flex-col">
