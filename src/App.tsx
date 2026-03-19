@@ -40,14 +40,9 @@ function App() {
     <div className="min-h-screen bg-black text-slate-100 p-2 overflow-hidden font-mono">
       {/* Grid Container */}
       <div className="h-[calc(100vh-1rem)] grid grid-cols-1 md:grid-cols-12 md:grid-rows-3 gap-2">
-        {/* Row 1 & 2: CMD */}
-        <div className="md:col-span-6 md:row-span-2 p-4 bg-black border border-slate-700 rounded-none relative overflow-hidden group">
-          <CmdPrompt />
-          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-800 group-hover:text-blue-400 group-hover:border-blue-900 transition-colors">cmd</span>
-        </div>
-
-        {/* Row 1: Clock / Pomodoro */}
-        <div className="md:col-span-3 md:row-span-1 p-4 bg-black border border-slate-700 rounded-none relative flex items-center justify-center group">
+        
+        {/* Column 1: Left (Clock & Weather) */}
+        <div className="md:col-span-3 md:row-span-1 p-4 bg-black border border-slate-900 hover:border-accent/40 rounded-none relative flex items-center justify-center group transition-colors">
           {pomoSettings ? (
             <Pomodoro
               key={`${pomoSettings.focus}-${pomoSettings.break}`}
@@ -57,37 +52,43 @@ function App() {
           ) : (
             <Clock />
           )}
-          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-800 group-hover:text-blue-400 group-hover:border-blue-900 transition-colors">{pomoSettings ? "pomodoro" : "clock"}</span>
+          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-900 group-hover:text-accent group-hover:border-accent/30 transition-colors">{pomoSettings ? "pomodoro" : "clock"}</span>
         </div>
 
-        {/* Row 1 & 2: Todo List */}
-        <div className="md:col-span-3 md:row-span-2 p-4 bg-black border border-slate-700 rounded-none relative overflow-hidden group">
+        {/* Column 2: Center (CMD Prompt - Row 1 & 2) */}
+        <div className="md:col-span-6 md:row-span-2 p-4 bg-black border border-slate-900 hover:border-accent/40 rounded-none relative overflow-hidden group transition-colors">
+          <CmdPrompt />
+          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-900 group-hover:text-accent group-hover:border-accent/30 transition-colors">cmd</span>
+        </div>
+
+        {/* Column 3: Right (Todo List - Row 1 & 2) */}
+        <div className="md:col-span-3 md:row-span-2 p-4 bg-black border border-slate-900 hover:border-accent/40 rounded-none relative overflow-hidden group transition-colors">
           <TodoList />
-          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-800 group-hover:text-blue-400 group-hover:border-blue-900 transition-colors">tasks</span>
+          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-900 group-hover:text-accent group-hover:border-accent/30 transition-colors">tasks</span>
         </div>
 
-        {/* Row 2: Weather */}
-        <div className="md:col-span-3 md:row-span-1 p-4 bg-black border border-slate-700 rounded-none relative flex items-center justify-center group">
+        {/* Column 1: Left (Weather - Row 2) */}
+        <div className="md:col-span-3 md:row-span-1 p-4 bg-black border border-slate-900 hover:border-accent/40 rounded-none relative flex items-center justify-center group transition-colors">
           <Weather />
-          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-800 group-hover:text-blue-400 group-hover:border-blue-900 transition-colors">weather</span>
+          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-900 group-hover:text-accent group-hover:border-accent/30 transition-colors">weather</span>
         </div>
 
-        {/* Row 3: Hacker News */}
-        <div className="md:col-span-6 md:row-span-1 p-4 bg-black border border-slate-700 rounded-none relative overflow-hidden group">
-          <HackerNews />
-          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-800 group-hover:text-blue-400 group-hover:border-blue-900 transition-colors">hackernews</span>
-        </div>
-
-        {/* Row 3: Notes */}
-        <div className="md:col-span-3 md:row-span-1 p-4 bg-black border border-slate-700 rounded-none relative overflow-hidden group">
+        {/* Row 3: Left (Notes) */}
+        <div className="md:col-span-3 md:row-span-1 p-4 bg-black border border-slate-900 hover:border-accent/40 rounded-none relative overflow-hidden group transition-colors">
           <Notes />
-          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-800 group-hover:text-blue-400 group-hover:border-blue-900 transition-colors">notes</span>
+          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-900 group-hover:text-accent group-hover:border-accent/30 transition-colors">notes</span>
         </div>
 
-        {/* Row 3: Bookmarks */}
-        <div className="md:col-span-3 md:row-span-1 p-4 bg-black border border-slate-700 rounded-none relative overflow-hidden group">
+        {/* Row 3: Center (Hacker News) */}
+        <div className="md:col-span-6 md:row-span-1 p-4 bg-black border border-slate-900 hover:border-accent/40 rounded-none relative overflow-hidden group transition-colors">
+          <HackerNews />
+          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-900 group-hover:text-accent group-hover:border-accent/30 transition-colors">hackernews</span>
+        </div>
+
+        {/* Row 3: Right (Bookmarks) */}
+        <div className="md:col-span-3 md:row-span-1 p-4 bg-black border border-slate-900 hover:border-accent/40 rounded-none relative overflow-hidden group transition-colors">
           <Bookmarks />
-          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-800 group-hover:text-blue-400 group-hover:border-blue-900 transition-colors">bookmarks</span>
+          <span className="absolute bottom-1 right-1 px-1 bg-black text-[10px] text-slate-500 font-mono uppercase border border-slate-900 group-hover:text-accent group-hover:border-accent/30 transition-colors">bookmarks</span>
         </div>
       </div>
     </div>

@@ -35,7 +35,7 @@ const CalendarView: React.FC<CalendarProps> = ({
       days.push(
         <div
           key={d}
-          className={`p-1 text-center rounded-none text-[10px] font-mono ${isToday ? "bg-blue-600 text-white font-bold" : "text-slate-300 hover:bg-slate-800"}`}
+          className={`p-1 text-center rounded-none text-[10px] font-mono transition-colors ${isToday ? "bg-accent text-white font-bold" : "text-slate-400 hover:bg-accent/20 hover:text-white"}`}
         >
           {d}
         </div>,
@@ -45,12 +45,12 @@ const CalendarView: React.FC<CalendarProps> = ({
     return (
       <div
         key={`${y}-${m}`}
-        className="p-2 bg-black border border-slate-800"
+        className="p-2 bg-black border border-transparent hover:border-accent/20 transition-colors"
       >
-        <div className="text-center font-bold text-slate-100 mb-1 uppercase tracking-widest text-[10px]">
+        <div className="text-center font-bold text-slate-200 mb-1 uppercase tracking-widest text-[10px]">
           {monthName} {y}
         </div>
-        <div className="grid grid-cols-7 gap-1 text-[8px] text-slate-500 font-bold mb-1 uppercase tracking-tighter">
+        <div className="grid grid-cols-7 gap-1 text-[8px] text-slate-600 font-bold mb-1 uppercase tracking-tighter">
           {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
             <div key={day} className="text-center">
               {day}
@@ -63,14 +63,14 @@ const CalendarView: React.FC<CalendarProps> = ({
   };
 
   return (
-    <div className="bg-black border border-slate-700 p-3 w-full animate-in fade-in slide-in-from-top-4 duration-300">
+    <div className="bg-black border border-accent/30 p-3 w-full animate-in fade-in slide-in-from-top-4 duration-300">
       <div className="flex justify-between items-center mb-3">
-        <h2 className="text-xs font-bold text-white font-mono tracking-tight uppercase">
+        <h2 className="text-xs font-bold text-slate-200 font-mono tracking-tight uppercase">
           {fullYear ? `Calendar ${targetYear}` : "Calendar"}
         </h2>
         <button
           onClick={onClose}
-          className="text-slate-500 hover:text-white transition-colors text-[10px] font-mono border border-slate-800 px-1"
+          className="text-slate-600 hover:text-accent transition-colors text-[10px] font-mono border border-transparent hover:border-accent/30 px-1"
         >
           [X]
         </button>

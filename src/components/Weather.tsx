@@ -12,12 +12,12 @@ const getWeatherDescription = (code: number): string => {
 };
 
 const getAqiDescription = (aqi: number): { text: string; color: string } => {
-  if (aqi <= 50) return { text: "Good", color: "text-green-400" };
-  if (aqi <= 100) return { text: "Moderate", color: "text-yellow-400" };
-  if (aqi <= 150) return { text: "Sensitive", color: "text-orange-400" };
-  if (aqi <= 200) return { text: "Unhealthy", color: "text-red-400" };
-  if (aqi <= 300) return { text: "Very Unhealthy", color: "text-purple-400" };
-  return { text: "Hazardous", color: "text-rose-600" };
+  if (aqi <= 50) return { text: "Good", color: "text-green-600/50" };
+  if (aqi <= 100) return { text: "Moderate", color: "text-yellow-600/50" };
+  if (aqi <= 150) return { text: "Sensitive", color: "text-orange-600/50" };
+  if (aqi <= 200) return { text: "Unhealthy", color: "text-red-600/50" };
+  if (aqi <= 300) return { text: "Very Unhealthy", color: "text-purple-600/50" };
+  return { text: "Hazardous", color: "text-rose-800/50" };
 };
 
 interface CurrentWeather {
@@ -119,36 +119,39 @@ const Weather = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-4">
+    <div className="flex flex-col items-center justify-center h-full text-center p-4 w-full overflow-hidden">
       {error && (
-        <p className="text-red-400 text-sm font-medium mb-4">{error}</p>
+        <p className="text-red-900/80 text-[10px] font-mono uppercase mb-4 truncate w-full">{error}</p>
       )}
 
       {loading && (
-        <p className="text-slate-400 animate-pulse">Fetching Weather...</p>
+        <p className="text-slate-600 animate-pulse text-[10px] font-mono uppercase tracking-widest">Fetching...</p>
       )}
 
       {weather && !loading && (
-        <>
-          <div className="text-slate-400 text-sm mb-1">{locationName}</div>
-          <div className="text-5xl font-bold text-white mb-2">
+        <div className="w-full">
+          <div className="text-slate-500 text-[10px] mb-1 font-mono uppercase tracking-tight truncate px-4">{locationName}</div>
+          <div className="text-5xl font-bold text-white mb-2 font-mono tracking-tighter">
             {Math.round(weather.temperature)}
-            <span className="text-2xl text-slate-400 align-top ml-1">°C</span>
+            <span className="text-2xl text-slate-500 align-top ml-1">°</span>
           </div>
-          <div className="text-slate-300 text-lg font-medium">
+          <div className="text-slate-400 text-sm uppercase tracking-[0.2em] font-medium truncate px-4">
             {getWeatherDescription(weather.weathercode)}
           </div>
           {aqi !== null && (
-            <div className="text-slate-500 text-xs mt-2 uppercase tracking-widest font-mono">
-              AQI: <span className={getAqiDescription(aqi).color}>{aqi}</span> — {getAqiDescription(aqi).text}
+            <div className="text-slate-600 text-[10px] mt-4 uppercase tracking-[0.1em] font-mono flex items-center justify-center gap-2">
+              <span>AQI</span>
+              <span className={`px-1.5 py-0.5 ${getAqiDescription(aqi).color} border border-current/10 font-bold`}>{aqi}</span>
+              <span className="opacity-30">—</span>
+              <span className="opacity-60">{getAqiDescription(aqi).text}</span>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {!weather && !loading && !error && (
-        <p className="text-slate-500 italic">
-          Use 'weather &lt;city&gt;' in the prompt
+        <p className="text-slate-700 text-[10px] uppercase tracking-widest font-mono italic">
+          Set location via prompt
         </p>
       )}
     </div>

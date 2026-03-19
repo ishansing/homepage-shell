@@ -53,8 +53,8 @@ export const commands: CommandDefinition[] = [
     description: "Quick notes",
     execute: (args, { addNote, clearNotes }) => {
       const subNoteCmd = args[0]?.toLowerCase();
-      
-      if (subNoteCmd === "clear") {
+
+      if (subNoteCmd === "c" || subNoteCmd === "clear") {
         clearNotes();
         return { output: ["[Success] All notes cleared."] };
       }
@@ -71,12 +71,14 @@ export const commands: CommandDefinition[] = [
       if (subNoteCmd === "rm" || subNoteCmd === "remove") {
         const noteText = args.slice(1).join(" ");
         if (noteText) {
-          window.dispatchEvent(new CustomEvent("remove-note-by-text", { detail: noteText }));
+          window.dispatchEvent(
+            new CustomEvent("remove-note-by-text", { detail: noteText }),
+          );
           return { output: [`[Success] Note removed: ${noteText}`] };
         }
         return { output: ["[Error] Usage: note rm <text>"] };
       }
-      
+
       // Default to add if no subcommand or unknown subcommand
       const noteText = args.join(" ");
       if (noteText) {
@@ -84,7 +86,11 @@ export const commands: CommandDefinition[] = [
         return { output: [`[Success] Note added: ${noteText}`] };
       }
 
-      return { output: ["[Error] Usage: note <text>, note add <text>, note rm <text>, or note clear"] };
+      return {
+        output: [
+          "[Error] Usage: note <text>, note add <text>, note rm <text>, or note clear",
+        ],
+      };
     },
   },
   {
@@ -318,6 +324,7 @@ export const commands: CommandDefinition[] = [
   },
   {
     name: "clear",
+    aliases: ["c"],
     description: "Clear terminal",
     execute: () => ({ clear: true }),
   },
@@ -345,7 +352,10 @@ export const executeCommand = (
   );
 
   if (bookmark) {
-    window.open(bookmark.url, "_blank");
+    const url = bookmark.url.includes("://")
+      ? bookmark.url
+      : `https://${bookmark.url}`;
+    window.open(url, "_blank");
     return { output: [`Opening: ${bookmark.name}...`] };
   }
 

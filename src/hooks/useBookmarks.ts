@@ -37,8 +37,9 @@ export const useBookmarks = () => {
   useEffect(() => {
     const handleAddBookmark = (event: CustomEvent<{ name: string, url: string }>) => {
       const { name, url } = event.detail;
-      const domain = extractDomain(url);
-      const newLink: Link = { name, url, icon: domain };
+      const formattedUrl = url.includes("://") ? url : `https://${url}`;
+      const domain = extractDomain(formattedUrl);
+      const newLink: Link = { name, url: formattedUrl, icon: domain };
 
       setBookmarks((prev) => {
         if (prev.some(b => b.name.toLowerCase() === name.toLowerCase())) return prev;

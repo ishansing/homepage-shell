@@ -15,17 +15,17 @@ const TodoList = () => {
         {todos.map((todo) => (
           <div
             key={todo.id}
-            className="group flex items-center justify-between bg-slate-900/50 p-3 rounded-none border border-slate-900 hover:bg-slate-900 hover:border-slate-800 transition-colors"
+            className="group flex items-center justify-between bg-neutral-900/30 p-3 rounded-none border border-transparent hover:border-accent/30 transition-colors"
           >
-            <div className="flex items-center gap-3 overflow-hidden">
+            <div className="flex items-center gap-3 overflow-hidden flex-1">
               <input
                 type="checkbox"
                 checked={todo.completed}
                 onChange={() => toggleTodoById(todo.id)}
-                className="w-5 h-5 rounded border-slate-500 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                className="w-4 h-4 rounded-none border-slate-700 bg-black text-accent focus:ring-accent/50 cursor-pointer transition-colors"
               />
               <span
-                className={`truncate ${todo.completed ? "line-through text-slate-500" : "text-slate-200"}`}
+                className={`text-sm break-words flex-1 ${todo.completed ? "line-through text-slate-600" : "text-slate-300"}`}
               >
                 {todo.text}
               </span>
@@ -33,7 +33,7 @@ const TodoList = () => {
 
             <button
               onClick={() => removeTodoById(todo.id)}
-              className="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity px-2"
+              className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all px-2 text-xs"
               title="Delete task"
             >
               ✕

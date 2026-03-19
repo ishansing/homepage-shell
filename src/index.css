@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+@theme {
+  --color-accent: #6b21a8;
+  --color-accent-dark: #4c1d95;
+  --color-accent-light: #a855f7;
+}
+
+@layer base {
+  body {
+    @apply bg-black text-slate-400 antialiased selection:bg-accent/30;
+  }
+
+  /* Custom Scrollbar for minimal look */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-800 hover:bg-accent/50 transition-colors;
+  }
+}

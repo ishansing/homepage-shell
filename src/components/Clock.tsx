@@ -36,25 +36,15 @@ const Clock = () => {
   // 3. RENDER: The "View"
   // -----------------------------------------------------------------
   return (
-    <div className="text-center">
-      {/* 
-         Display Time 
-         We use `toLocaleTimeString` for automatic locale formatting.
-         options: removes seconds for a cleaner, modern look.
-      */}
-      <div className="text-5xl font-bold tracking-tight text-white">
+    <div className="text-center w-full overflow-hidden">
+      <div className="text-5xl font-bold tracking-tighter text-white font-mono">
         {time.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
         })}
       </div>
-
-      {/* 
-         Display Date 
-         Using `undefined` as the first argument uses the user's browser language.
-      */}
-      <div className="text-slate-400 mt-2 text-lg">
+      <div className="text-slate-500 mt-2 text-sm uppercase tracking-[0.2em] font-medium truncate px-2">
         {time.toLocaleDateString(undefined, {
           weekday: "long",
           month: "long",

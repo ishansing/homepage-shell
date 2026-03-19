@@ -85,10 +85,10 @@ const CmdPrompt: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full font-mono text-xs text-green-400 p-4 rounded-none shadow-none bg-black relative">
+    <div className="flex flex-col h-full font-mono text-xs p-4 rounded-none shadow-none bg-black relative">
       {/* Prompt Input */}
       <form onSubmit={handleCommand} className="flex items-center mb-2 shrink-0">
-        <span className="text-blue-400 mr-2 shrink-0">zeref@dashboard:~$</span>
+        <span className="text-accent mr-2 shrink-0">zeref@dashboard:~$</span>
         <input
           ref={inputRef}
           type="text"

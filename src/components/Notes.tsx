@@ -20,10 +20,10 @@ const Notes: React.FC = () => {
           {notes.map((note) => (
             <li
               key={note.id}
-              className="group bg-neutral-900/50 p-3 rounded-none border border-neutral-800 hover:border-yellow-900/50 transition-colors"
+              className="group bg-neutral-900/30 p-3 rounded-none border border-transparent hover:border-accent/30 transition-colors"
             >
               <div className="flex justify-between items-start gap-3">
-                <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap flex-1">
+                <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap break-words flex-1">
                   {note.text}
                 </p>
                 <button

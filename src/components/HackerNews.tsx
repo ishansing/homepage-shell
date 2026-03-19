@@ -57,7 +57,7 @@ const HackerNews: React.FC = () => {
       {error && <p className="text-red-400">{error}</p>}
 
       {!loading && !error && (
-        <ul className="space-y-3 overflow-y-auto">
+        <ul className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
           {stories.map((story, index) => {
             const targetUrl = story.url || `https://news.ycombinator.com/item?id=${story.id}`;
             return (
@@ -70,11 +70,11 @@ const HackerNews: React.FC = () => {
                 >
                   <div className="flex items-start">
                     <span className="text-slate-500 mr-2">{index + 1}.</span>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium text-slate-200 group-hover:text-orange-400 line-clamp-2">
+                    <div className="flex-1 overflow-hidden">
+                      <h3 className="text-sm font-medium text-slate-200 group-hover:text-accent line-clamp-2 transition-colors duration-300">
                         {story.title}
                       </h3>
-                      <div className="text-xs text-slate-500 mt-1 flex gap-2">
+                      <div className="text-[10px] text-slate-500 mt-1 flex gap-2 font-mono uppercase tracking-tight">
                         <span>{story.score} pts</span>
                         <span>by {story.by}</span>
                       </div>
