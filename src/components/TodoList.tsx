@@ -5,10 +5,6 @@ const TodoList = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-slate-200">Tasks</h2>
-      </div>
-
       <div className="flex-1 overflow-y-auto pr-2 space-y-2">
         {todos.length === 0 && (
           <p className="text-slate-500 text-center italic mt-4">
@@ -19,7 +15,7 @@ const TodoList = () => {
         {todos.map((todo) => (
           <div
             key={todo.id}
-            className="group flex items-center justify-between bg-slate-700/50 p-3 rounded hover:bg-slate-700 transition-colors"
+            className="group flex items-center justify-between bg-slate-900/50 p-3 rounded-none border border-slate-900 hover:bg-slate-900 hover:border-slate-800 transition-colors"
           >
             <div className="flex items-center gap-3 overflow-hidden">
               <input

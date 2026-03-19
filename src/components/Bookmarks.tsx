@@ -11,14 +11,10 @@ const Bookmarks = () => {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-slate-200">Bookmarks</h2>
-      </div>
-
+    <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto pr-2">
         {bookmarks.length === 0 ? (
-          <div className="text-center py-8 border-2 border-dashed border-slate-700 rounded-xl">
+          <div className="text-center py-8 border border-dashed border-slate-800 rounded-none">
             <p className="text-slate-500 text-sm">No bookmarks yet.</p>
             <p className="text-slate-600 text-xs mt-1">Use 'bm add &lt;url&gt; &lt;name&gt;' in the prompt.</p>
           </div>
@@ -30,7 +26,7 @@ const Bookmarks = () => {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center p-3 bg-slate-700/30 hover:bg-slate-600/50 rounded-lg transition-all border border-transparent hover:border-slate-500 hover:shadow-lg hover:-translate-y-1"
+                  className="flex flex-col items-center p-3 bg-slate-900/30 hover:bg-slate-800/50 rounded-none transition-all border border-slate-900 hover:border-slate-700 hover:shadow-lg hover:-translate-y-1"
                 >
                   <img
                     src={getIconUrl(link.icon)}

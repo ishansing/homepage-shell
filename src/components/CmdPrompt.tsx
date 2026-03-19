@@ -1,27 +1,56 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useTodos } from "../hooks/useTodos";
+import { useNotes } from "../hooks/useNotes";
+import { executeCommand, type CommandContext } from "../utils/commandHandler";
+import CalendarView from "./CalendarToast";
 
 const CmdPrompt: React.FC = () => {
   const [input, setInput] = useState("");
-  const [history, setHistory] = useState<string[]>(["System initialized. Type 'help' for commands."]);
+  const [history, setHistory] = useState<string[]>([
+    "System initialized. Type 'help' for commands.",
+  ]);
+  const [calendarConfig, setCalendarConfig] = useState<{
+    month?: number;
+    year?: number;
+    fullYear?: boolean;
+  } | null>(null);
+
   const outputRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { bookmarks, addBookmark, removeBookmark } = useBookmarks();
   const { addTodo, removeTodo, toggleTodo } = useTodos();
+  const { addNote, clearNotes } = useNotes();
 
   useEffect(() => {
     if (outputRef.current) {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
-  }, [history]);
+  }, [history, calendarConfig]);
 
   useEffect(() => {
     const handleGlobalClick = () => {
       inputRef.current?.focus();
     };
+    const handleShowCalendar = (
+      event: CustomEvent<{ month?: number; year?: number; fullYear?: boolean }>,
+    ) => {
+      setCalendarConfig(event.detail);
+    };
+
     window.addEventListener("click", handleGlobalClick);
-    return () => window.removeEventListener("click", handleGlobalClick);
+    window.addEventListener(
+      "show-calendar",
+      handleShowCalendar as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener("click", handleGlobalClick);
+      window.removeEventListener(
+        "show-calendar",
+        handleShowCalendar as EventListener,
+      );
+    };
   }, []);
 
   const handleCommand = (e: React.FormEvent) => {
@@ -29,225 +58,36 @@ const CmdPrompt: React.FC = () => {
     const cmdInput = input.trim();
     if (!cmdInput) return;
 
-    setHistory((prev) => [...prev, `> ${cmdInput}`]);
+    let newHistory: string[] = [`> ${cmdInput}`];
 
-    const parts = cmdInput.split(" ");
-    const commandName = parts[0].toLowerCase();
-    const args = parts.slice(1);
+    const context: CommandContext = {
+      bookmarks,
+      addBookmark,
+      removeBookmark,
+      addTodo,
+      removeTodo,
+      toggleTodo,
+      addNote,
+      clearNotes,
+    };
 
-    // Check if it's a built-in command
-    switch (commandName) {
-      case "help": {
-        setHistory((prev) => [
-          ...prev,
-          "Commands:",
-          "  todo add <task>     - Add a todo item",
-          "  todo rm <task>      - Remove a todo item",
-          "  todo done <task>    - Mark todo as done/undone",
-          "  bm add <url> <name> - Add bookmark",
-          "  bm rm <name>        - Remove bookmark",
-          "  weather <city>      - Set weather location",
-          "  pomo start <f> <b>  - Start pomodoro timer (focus, break minutes)",
-          "  pomo end            - Stop pomodoro and show clock",
-          "  cal [m/y]           - Show calendar (current, month, or year)",
-          "  ls                  - List bookmarks",
-          "  g <query>           - Search Google",
-          "  p <query>           - Search Perplexity",
-          "  clear               - Clear terminal",
-          "  <bookmark_name>     - Open a bookmark directly"
-        ]);
-        break;
-      }
-      case "ls": {
-        if (bookmarks.length > 0) {
-          setHistory((prev) => [...prev, "Bookmarks:", ...bookmarks.map(b => `  - ${b.name} (${b.url})`)]);
-        } else {
-          setHistory((prev) => [...prev, "No bookmarks found."]);
-        }
-        break;
-      }
-      case "t":
-      case "todo": {
-        const subTodoCmd = args[0]?.toLowerCase();
-        const todoText = args.slice(1).join(" ");
-        
-        if (subTodoCmd === "add") {
-          if (todoText) {
-            addTodo(todoText);
-            setHistory((prev) => [...prev, `[Success] Added todo: ${todoText}`]);
-          } else {
-            setHistory((prev) => [...prev, "[Error] Usage: todo add <task>"]);
-          }
-        } else if (subTodoCmd === "rm" || subTodoCmd === "remove") {
-          if (todoText) {
-            removeTodo(todoText);
-            setHistory((prev) => [...prev, `[Success] Removed todo: ${todoText}`]);
-          } else {
-            setHistory((prev) => [...prev, "[Error] Usage: todo rm <task>"]);
-          }
-        } else if (subTodoCmd === "done" || subTodoCmd === "check" || subTodoCmd === "do") {
-          if (todoText) {
-            toggleTodo(todoText);
-            setHistory((prev) => [...prev, `[Success] Toggled todo: ${todoText}`]);
-          } else {
-            setHistory((prev) => [...prev, "[Error] Usage: todo done <task>"]);
-          }
-        } else {
-          setHistory((prev) => [...prev, "[Error] Usage: todo <add|rm|done> <task>"]);
-        }
-        break;
-      }
-      case "b":
-      case "bm":
-      case "bookmark": {
-        const subBmCmd = args[0]?.toLowerCase();
-        if (subBmCmd === "add") {
-          if (args.length >= 3) {
-            const url = args[1];
-            const name = args.slice(2).join(" ");
-            addBookmark(name, url);
-            setHistory((prev) => [...prev, `[Success] Added bookmark: ${name}`]);
-          } else {
-            setHistory((prev) => [...prev, "[Error] Usage: bm add <url> <name>"]);
-          }
-        } else if (subBmCmd === "rm" || subBmCmd === "remove") {
-          const name = args.slice(1).join(" ");
-          if (name) {
-            removeBookmark(name);
-            setHistory((prev) => [...prev, `[Success] Removed bookmark: ${name}`]);
-          } else {
-            setHistory((prev) => [...prev, "[Error] Usage: bm rm <name>"]);
-          }
-        } else {
-          setHistory((prev) => [...prev, "[Error] Usage: bm <add|rm> ..."]);
-        }
-        break;
-      }
-      case "w":
-      case "weather": {
-        const city = args.join(" ");
-        if (city) {
-          window.dispatchEvent(new CustomEvent("set-weather-location", { detail: city }));
-          setHistory((prev) => [...prev, `Setting weather location to: ${city}`]);
-        } else {
-          setHistory((prev) => [...prev, "[Error] Usage: weather <city>"]);
-        }
-        break;
-      }
-      case "pomo": {
-        const subPomoCmd = args[0]?.toLowerCase();
-        if (subPomoCmd === "start") {
-          const focus = parseInt(args[1]) || 25;
-          const breakMins = parseInt(args[2]) || 5;
-          window.dispatchEvent(new CustomEvent("pomo-start", { 
-            detail: { focus, break: breakMins } 
-          }));
-          setHistory((prev) => [
-            ...prev, 
-            `[Success] Pomodoro started: ${focus}m focus, ${breakMins}m break`
-          ]);
-        } else if (subPomoCmd === "end" || subPomoCmd === "stop") {
-          window.dispatchEvent(new CustomEvent("pomo-end"));
-          setHistory((prev) => [...prev, "[Success] Pomodoro ended."]);
-        } else {
-          setHistory((prev) => [...prev, "[Error] Usage: pomo start <focus> <break> or pomo end"]);
-        }
-        break;
-      }
-      case "cal":
-      case "calendar": {
-        const now = new Date();
-        const arg = args[0]?.toLowerCase();
-        if (!arg) {
-          // Current month
-          window.dispatchEvent(new CustomEvent("show-calendar", { 
-            detail: { month: now.getMonth(), year: now.getFullYear(), fullYear: false } 
-          }));
-          setHistory((prev) => [...prev, `[Success] Showing calendar for ${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`]);
-        } else if (arg === "year" || (parseInt(arg) > 12 && parseInt(arg) < 3000)) {
-          // Full year
-          const targetYear = parseInt(arg) || now.getFullYear();
-          window.dispatchEvent(new CustomEvent("show-calendar", { 
-            detail: { year: targetYear, fullYear: true } 
-          }));
-          setHistory((prev) => [...prev, `[Success] Showing calendar for year ${targetYear}`]);
-        } else {
-          // Specific month
-          let monthIndex = parseInt(arg) - 1;
-          if (isNaN(monthIndex)) {
-            const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-            monthIndex = months.findIndex(m => arg.startsWith(m));
-          }
-          if (monthIndex >= 0 && monthIndex < 12) {
-            const targetYear = parseInt(args[1]) || now.getFullYear();
-            window.dispatchEvent(new CustomEvent("show-calendar", { 
-              detail: { month: monthIndex, year: targetYear, fullYear: false } 
-            }));
-            const mName = new Date(0, monthIndex).toLocaleString('default', { month: 'long' });
-            setHistory((prev) => [...prev, `[Success] Showing calendar for ${mName} ${targetYear}`]);
-          } else {
-            setHistory((prev) => [...prev, "[Error] Usage: cal [month/year] (e.g., 'cal', 'cal 12', 'cal year', 'cal may 2025')"]);
-          }
-        }
-        break;
-      }
-      case "g":
-      case "google": {
-        const gQuery = args.join(" ");
-        if (gQuery) {
-          window.open(`https://www.google.com/search?q=${encodeURIComponent(gQuery)}`, "_blank");
-          setHistory((prev) => [...prev, `Searching Google for: ${gQuery}`]);
-        } else {
-          setHistory((prev) => [...prev, "[Error] Usage: g <query>"]);
-        }
-        break;
-      }
-      case "p":
-      case "perplexity": {
-        const pQuery = args.join(" ");
-        if (pQuery) {
-          window.open(`https://www.perplexity.ai/search?q=${encodeURIComponent(pQuery)}`, "_blank");
-          setHistory((prev) => [...prev, `Searching Perplexity for: ${pQuery}`]);
-        } else {
-          setHistory((prev) => [...prev, "[Error] Usage: p <query>"]);
-        }
-        break;
-      }
-      case "clear": {
-        setHistory([]);
-        break;
-      }
-      default: {
-        // Check if commandName matches a bookmark
-        const bookmark = bookmarks.find(b => b.name.toLowerCase() === commandName);
-        if (bookmark) {
-          window.open(bookmark.url, "_blank");
-          setHistory((prev) => [...prev, `Opening: ${bookmark.name}...`]);
-        } else {
-          setHistory((prev) => [...prev, `[Error] Unknown command: ${commandName}`]);
-        }
-      }
+    const result = executeCommand(cmdInput, context);
+
+    if (result.clear) {
+      newHistory = [];
+      setCalendarConfig(null);
+    } else if (result.output) {
+      newHistory.push(...result.output);
     }
 
+    setHistory(newHistory);
     setInput("");
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 font-mono text-xs text-green-400 p-4 rounded-xl border border-slate-800 shadow-2xl">
-      {/* Terminal Output Area */}
-      <div 
-        ref={outputRef}
-        className="flex-1 overflow-y-auto mb-2 space-y-1 scrollbar-hide"
-      >
-        {history.map((line, i) => (
-          <div key={i} className={line.startsWith(">") ? "text-slate-200" : line.startsWith("[Error]") ? "text-red-400" : "text-slate-500"}>
-            {line}
-          </div>
-        ))}
-      </div>
-
+    <div className="flex flex-col h-full font-mono text-xs text-green-400 p-4 rounded-none shadow-none bg-black relative">
       {/* Prompt Input */}
-      <form onSubmit={handleCommand} className="flex items-center">
+      <form onSubmit={handleCommand} className="flex items-center mb-2 shrink-0">
         <span className="text-blue-400 mr-2 shrink-0">zeref@dashboard:~$</span>
         <input
           ref={inputRef}
@@ -260,6 +100,36 @@ const CmdPrompt: React.FC = () => {
           autoComplete="off"
         />
       </form>
+
+      {/* Terminal Output Area */}
+      <div
+        ref={outputRef}
+        className="flex-1 overflow-y-auto space-y-2 scrollbar-hide"
+      >
+        {calendarConfig && (
+          <div className="mb-4">
+            <CalendarView
+              {...calendarConfig}
+              onClose={() => setCalendarConfig(null)}
+            />
+          </div>
+        )}
+
+        {history.map((line, i) => (
+          <div
+            key={i}
+            className={
+              line.startsWith(">")
+                ? "text-slate-200"
+                : line.startsWith("[Error]")
+                  ? "text-red-400"
+                  : "text-slate-500"
+            }
+          >
+            {line}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
