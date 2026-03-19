@@ -1,48 +1,45 @@
 import { useState, useEffect } from "react";
 
+/**
+ * COMPONENT: Clock
+ * A high-visibility time and date display using Nothing Phone aesthetics.
+ */
 const Clock = () => {
-  // -----------------------------------------------------------------
-  // 1. STATE: The "Memory"
-  // -----------------------------------------------------------------
-  // We use `useState` because when this variable changes, we want React
-  // to automatically re-paint the screen.
-  // We initialize it with `new Date()` so it shows the time immediately
-  // and doesn't wait for the first tick.
+  // Local state to track the current time, updated every tick.
   const [time, setTime] = useState(new Date());
 
-  // -----------------------------------------------------------------
-  // 2. EFFECT: The "Engine"
-  // -----------------------------------------------------------------
-  // `useEffect` lets us run code that isn't just calculating UI (like timers).
+  /**
+   * ENGINE: The Ticker
+   * Synchronizes the component with the system clock every 1 second.
+   */
   useEffect(() => {
-    // Create an interval that runs every 1000 milliseconds (1 second)
     const timerId = setInterval(() => {
-      // Every tick, we create a fresh Date object.
-      // Calling `setTime` triggers React to re-render this component.
       setTime(new Date());
     }, 1000);
 
-    // CLEANUP FUNCTION
-    // This is crucial. If the user navigates away or this component is removed
-    // from the screen, this function runs. It kills the timer.
-    // Without this, the timer would keep running in the background (Memory Leak).
+    // CLEANUP: Stop the interval when the widget is swapped for Pomodoro
     return () => clearInterval(timerId);
   }, []);
-  // The empty dependency array [] tells React:
-  // "Only start this timer ONCE when the component first mounts."
-  // If we omitted this, it might try to create a new timer on every single render!
 
-  // -----------------------------------------------------------------
-  // 3. RENDER: The "View"
-  // -----------------------------------------------------------------
   return (
     <div className="text-center w-full overflow-hidden">
-      <div className="text-7xl font-normal tracking-tighter text-white font-ndot uppercase">
+      {/* 
+          TIME DISPLAY
+          - Uses NDot55 font for the "Nothing" look.
+          - 2-digit formatting for clean alignment.
+      */}
+      <div className="text-6xl font-normal tracking-tighter text-white font-ndot uppercase">
         {time.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         })}
       </div>
+
+      {/* 
+          DATE DISPLAY
+          - Uses Bebas font for secondary information.
+          - High letter spacing (tracking) for a premium minimal feel.
+      */}
       <div className="text-slate-500 mt-2 text-sm font-bebas tracking-[0.2em] uppercase truncate px-2">
         {time.toLocaleDateString(undefined, {
           weekday: "short",

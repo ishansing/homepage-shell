@@ -1,18 +1,39 @@
-import type { Link } from "../hooks/useBookmarks";
+import type { Todo, Link, Note, PomodoroSettings, CalendarConfig } from "../context/DashboardContext";
 
+/**
+ * COMMAND CONTEXT
+ * This interface defines the API available to command executors.
+ * It is populated by the CmdPrompt component using the useDashboard hook.
+ */
 export interface CommandContext {
   bookmarks: Link[];
   addBookmark: (name: string, url: string) => void;
   removeBookmark: (name: string) => void;
+  todos: Todo[];
   addTodo: (text: string) => void;
   removeTodo: (text: string) => void;
   toggleTodo: (text: string) => void;
+  notes: Note[];
   addNote: (text: string) => void;
   clearNotes: () => void;
+  removeNoteByText: (text: string) => void;
+  setPomoSettings: (settings: PomodoroSettings | null) => void;
+  setCalendarConfig: (config: CalendarConfig | null) => void;
 }
 
+/**
+ * COMMAND RESULT
+ * output: Array of strings to be printed in the terminal.
+ * clear: If true, clears the terminal history.
+ */
 export type CommandResult = { output?: string[]; clear?: boolean };
 
+/**
+ * COMMAND DEFINITION
+ * name: The primary keyword to trigger the command.
+ * aliases: Alternative keywords (e.g., 'b' for 'bookmark').
+ * execute: The function that performs the logic and returns a result.
+ */
 export interface CommandDefinition {
   name: string;
   aliases?: string[];
@@ -20,6 +41,9 @@ export interface CommandDefinition {
   execute: (args: string[], context: CommandContext) => CommandResult;
 }
 
+/**
+ * REGISTRY: ALL SYSTEM COMMANDS
+ */
 export const commands: CommandDefinition[] = [
   {
     name: "help",
@@ -50,11 +74,11 @@ export const commands: CommandDefinition[] = [
   {
     name: "note",
     aliases: ["n"],
-    description: "Quick notes",
-    execute: (args, { addNote, clearNotes }) => {
+    description: "Quick notes management",
+    execute: (args, { addNote, clearNotes, removeNoteByText }) => {
       const subNoteCmd = args[0]?.toLowerCase();
-
-      if (subNoteCmd === "c" || subNoteCmd === "clear") {
+      
+      if (subNoteCmd === "clear") {
         clearNotes();
         return { output: ["[Success] All notes cleared."] };
       }
@@ -71,14 +95,12 @@ export const commands: CommandDefinition[] = [
       if (subNoteCmd === "rm" || subNoteCmd === "remove") {
         const noteText = args.slice(1).join(" ");
         if (noteText) {
-          window.dispatchEvent(
-            new CustomEvent("remove-note-by-text", { detail: noteText }),
-          );
+          removeNoteByText(noteText);
           return { output: [`[Success] Note removed: ${noteText}`] };
         }
         return { output: ["[Error] Usage: note rm <text>"] };
       }
-
+      
       // Default to add if no subcommand or unknown subcommand
       const noteText = args.join(" ");
       if (noteText) {
@@ -86,16 +108,12 @@ export const commands: CommandDefinition[] = [
         return { output: [`[Success] Note added: ${noteText}`] };
       }
 
-      return {
-        output: [
-          "[Error] Usage: note <text>, note add <text>, note rm <text>, or note clear",
-        ],
-      };
+      return { output: ["[Error] Usage: note <text>, note add <text>, note rm <text>, or note clear"] };
     },
   },
   {
     name: "ls",
-    description: "List bookmarks",
+    description: "List all bookmarks",
     execute: (_, { bookmarks }) => {
       if (bookmarks.length > 0) {
         return {
@@ -111,7 +129,7 @@ export const commands: CommandDefinition[] = [
   {
     name: "todo",
     aliases: ["t"],
-    description: "Manage todos",
+    description: "Task management",
     execute: (args, { addTodo, removeTodo, toggleTodo }) => {
       const subTodoCmd = args[0]?.toLowerCase();
       const todoText = args.slice(1).join(" ");
@@ -147,7 +165,7 @@ export const commands: CommandDefinition[] = [
   {
     name: "bookmark",
     aliases: ["b", "bm"],
-    description: "Manage bookmarks",
+    description: "Bookmark management",
     execute: (args, { addBookmark, removeBookmark }) => {
       const subBmCmd = args[0]?.toLowerCase();
       if (subBmCmd === "add") {
@@ -177,6 +195,8 @@ export const commands: CommandDefinition[] = [
     execute: (args) => {
       const city = args.join(" ");
       if (city) {
+        // We use a custom event here because the Weather component 
+        // needs to trigger an imperative geocoding sequence.
         window.dispatchEvent(
           new CustomEvent("set-weather-location", { detail: city }),
         );
@@ -187,17 +207,13 @@ export const commands: CommandDefinition[] = [
   },
   {
     name: "pomo",
-    description: "Pomodoro timer",
-    execute: (args) => {
+    description: "Pomodoro timer management",
+    execute: (args, { setPomoSettings }) => {
       const subPomoCmd = args[0]?.toLowerCase();
       if (subPomoCmd === "start") {
         const focus = parseInt(args[1]) || 25;
         const breakMins = parseInt(args[2]) || 5;
-        window.dispatchEvent(
-          new CustomEvent("pomo-start", {
-            detail: { focus, break: breakMins },
-          }),
-        );
+        setPomoSettings({ focus, break: breakMins });
         return {
           output: [
             `[Success] Pomodoro started: ${focus}m focus, ${breakMins}m break`,
@@ -205,7 +221,7 @@ export const commands: CommandDefinition[] = [
         };
       }
       if (subPomoCmd === "end" || subPomoCmd === "stop") {
-        window.dispatchEvent(new CustomEvent("pomo-end"));
+        setPomoSettings(null);
         return { output: ["[Success] Pomodoro ended."] };
       }
       return {
@@ -216,20 +232,16 @@ export const commands: CommandDefinition[] = [
   {
     name: "cal",
     aliases: ["calendar"],
-    description: "Show calendar",
-    execute: (args) => {
+    description: "Calendar display",
+    execute: (args, { setCalendarConfig }) => {
       const now = new Date();
       const arg = args[0]?.toLowerCase();
       if (!arg) {
-        window.dispatchEvent(
-          new CustomEvent("show-calendar", {
-            detail: {
-              month: now.getMonth(),
-              year: now.getFullYear(),
-              fullYear: false,
-            },
-          }),
-        );
+        setCalendarConfig({
+          month: now.getMonth(),
+          year: now.getFullYear(),
+          fullYear: false,
+        });
         return {
           output: [
             `[Success] Showing calendar for ${now.toLocaleString("default", { month: "long" })} ${now.getFullYear()}`,
@@ -238,11 +250,7 @@ export const commands: CommandDefinition[] = [
       }
       if (arg === "year" || (parseInt(arg) > 12 && parseInt(arg) < 3000)) {
         const targetYear = parseInt(arg) || now.getFullYear();
-        window.dispatchEvent(
-          new CustomEvent("show-calendar", {
-            detail: { year: targetYear, fullYear: true },
-          }),
-        );
+        setCalendarConfig({ year: targetYear, fullYear: true });
         return {
           output: [`[Success] Showing calendar for year ${targetYear}`],
         };
@@ -250,32 +258,18 @@ export const commands: CommandDefinition[] = [
       let monthIndex = parseInt(arg) - 1;
       if (isNaN(monthIndex)) {
         const months = [
-          "jan",
-          "feb",
-          "mar",
-          "apr",
-          "may",
-          "jun",
-          "jul",
-          "aug",
-          "sep",
-          "oct",
-          "nov",
-          "dec",
+          "jan", "feb", "mar", "apr", "may", "jun", 
+          "jul", "aug", "sep", "oct", "nov", "dec"
         ];
         monthIndex = months.findIndex((m) => arg.startsWith(m));
       }
       if (monthIndex >= 0 && monthIndex < 12) {
         const targetYear = parseInt(args[1]) || now.getFullYear();
-        window.dispatchEvent(
-          new CustomEvent("show-calendar", {
-            detail: {
-              month: monthIndex,
-              year: targetYear,
-              fullYear: false,
-            },
-          }),
-        );
+        setCalendarConfig({
+          month: monthIndex,
+          year: targetYear,
+          fullYear: false,
+        });
         const mName = new Date(0, monthIndex).toLocaleString("default", {
           month: "long",
         });
@@ -325,11 +319,15 @@ export const commands: CommandDefinition[] = [
   {
     name: "clear",
     aliases: ["c"],
-    description: "Clear terminal",
+    description: "Clear terminal history",
     execute: () => ({ clear: true }),
   },
 ];
 
+/**
+ * ENGINE: Command Router
+ * Parses raw input and matches it against registry or existing bookmarks.
+ */
 export const executeCommand = (
   cmdInput: string,
   context: CommandContext,
@@ -338,6 +336,7 @@ export const executeCommand = (
   const commandName = parts[0].toLowerCase();
   const args = parts.slice(1);
 
+  // 1. Try to find a registered command
   const command = commands.find(
     (c) => c.name === commandName || c.aliases?.includes(commandName),
   );
@@ -346,18 +345,24 @@ export const executeCommand = (
     return command.execute(args, context);
   }
 
-  // Check if commandName matches a bookmark
+  // 2. Try to match a bookmark name directly
   const bookmark = context.bookmarks.find(
     (b) => b.name.toLowerCase() === commandName,
   );
 
   if (bookmark) {
-    const url = bookmark.url.includes("://")
-      ? bookmark.url
-      : `https://${bookmark.url}`;
+    const url = bookmark.url.includes("://") ? bookmark.url : `https://${bookmark.url}`;
+    
+    // SECURITY: Protocol validation to prevent 'javascript:' injection
+    if (url.toLowerCase().startsWith("javascript:")) {
+      console.error("[Security] Blocked bookmark with javascript: protocol.");
+      return { output: ["[Error] Blocked execution of unsafe URL."] };
+    }
+    
     window.open(url, "_blank");
     return { output: [`Opening: ${bookmark.name}...`] };
   }
 
+  // 3. Fallback for unknown input
   return { output: [`[Error] Unknown command: ${commandName}`] };
 };
