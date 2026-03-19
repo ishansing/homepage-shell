@@ -8,37 +8,57 @@ import CmdPrompt from "./components/CmdPrompt";
 import CalendarToast from "./components/CalendarToast";
 
 function App() {
-  const [pomoSettings, setPomoSettings] = useState<{ focus: number; break: number } | null>(null);
-  const [calendarConfig, setCalendarConfig] = useState<{ month?: number; year?: number; fullYear?: boolean } | null>(null);
+  const [pomoSettings, setPomoSettings] = useState<{
+    focus: number;
+    break: number;
+  } | null>(null);
+  const [calendarConfig, setCalendarConfig] = useState<{
+    month?: number;
+    year?: number;
+    fullYear?: boolean;
+  } | null>(null);
 
   useEffect(() => {
-    const handlePomoStart = (event: CustomEvent<{ focus: number; break: number }>) => {
+    const handlePomoStart = (
+      event: CustomEvent<{ focus: number; break: number }>,
+    ) => {
       setPomoSettings(event.detail);
     };
     const handlePomoEnd = () => {
       setPomoSettings(null);
     };
-    const handleShowCalendar = (event: CustomEvent<{ month?: number; year?: number; fullYear?: boolean }>) => {
+    const handleShowCalendar = (
+      event: CustomEvent<{ month?: number; year?: number; fullYear?: boolean }>,
+    ) => {
       setCalendarConfig(event.detail);
     };
 
     window.addEventListener("pomo-start", handlePomoStart as EventListener);
     window.addEventListener("pomo-end", handlePomoEnd);
-    window.addEventListener("show-calendar", handleShowCalendar as EventListener);
+    window.addEventListener(
+      "show-calendar",
+      handleShowCalendar as EventListener,
+    );
 
     return () => {
-      window.removeEventListener("pomo-start", handlePomoStart as EventListener);
+      window.removeEventListener(
+        "pomo-start",
+        handlePomoStart as EventListener,
+      );
       window.removeEventListener("pomo-end", handlePomoEnd);
-      window.removeEventListener("show-calendar", handleShowCalendar as EventListener);
+      window.removeEventListener(
+        "show-calendar",
+        handleShowCalendar as EventListener,
+      );
     };
   }, []);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-slate-100 p-8">
       {calendarConfig && (
-        <CalendarToast 
-          {...calendarConfig} 
-          onClose={() => setCalendarConfig(null)} 
+        <CalendarToast
+          {...calendarConfig}
+          onClose={() => setCalendarConfig(null)}
         />
       )}
       {/* Grid Container */}
@@ -47,10 +67,10 @@ function App() {
         <div className="space-y-8">
           <div className="p-6 bg-neutral-950 rounded-xl  ">
             {pomoSettings ? (
-              <Pomodoro 
+              <Pomodoro
                 key={`${pomoSettings.focus}-${pomoSettings.break}`}
-                focusMinutes={pomoSettings.focus} 
-                breakMinutes={pomoSettings.break} 
+                focusMinutes={pomoSettings.focus}
+                breakMinutes={pomoSettings.break}
               />
             ) : (
               <Clock />
