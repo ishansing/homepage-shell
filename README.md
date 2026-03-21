@@ -4,7 +4,7 @@ A minimal, command-driven personal dashboard inspired by the **TUI applications*
 
 ![Dashboard Layout](./public/img.png)
 
-## ✨ Features
+## Features
 
 - **Command-First Interface**: Control your entire dashboard through a central terminal.
 - **TUI Aesthetic**: Monochrome design with `NDot55` and `Bebas` typography, minimal borders, and a signature dark purple accent.
@@ -19,7 +19,7 @@ A minimal, command-driven personal dashboard inspired by the **TUI applications*
 - **Intelligent Bookmarks**: Speed dial with an automated "Icon Engine" powered by Remix Icon.
 - **Global Search**: Search Google or Perplexity directly from the prompt.
 
-## ⌨️ Command Registry
+## Command Registry
 
 Type `help` in the command prompt to see all available actions:
 
@@ -35,7 +35,7 @@ Type `help` in the command prompt to see all available actions:
 | `g <query>`           | Search Google                | `g react 19 hooks`         |
 | `clear`               | Wipe terminal history        | `clear`                    |
 
-## 🛠️ Technical Architecture
+## Technical Architecture
 
 - **State Management**: Centralized React Context (`DashboardContext.tsx`) managing all data models and UI transitions.
 - **Persistence**: All user data (Todos, Notes, Bookmarks, Location) is persisted automatically via `localStorage` with safe JSON parsing.
@@ -47,7 +47,7 @@ Type `help` in the command prompt to see all available actions:
   - Optimized 12-column CSS Grid layout for responsiveness.
 - **Typography**: Custom `@font-face` integration for `NDot55`, `Bebas`, and `Poppins`.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -81,6 +81,8 @@ Type `help` in the command prompt to see all available actions:
 bun run build
 ```
 
-## 📄 License
+**Also included a Dockerfile for containerized build.**
+
+## License
 
 MIT
