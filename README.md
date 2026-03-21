@@ -2,7 +2,7 @@
 
 A minimal, command-driven personal dashboard inspired by the **TUI applications** aesthetic. Built with React 19, Vite, and Tailwind CSS v4, this dashboard combines a "terminal-first" interaction model with a clean, grid-based visual interface.
 
-![Dashboard Layout](./layout.png) _(Note: Placeholder for actual screenshot)_
+![Dashboard Layout](./public/img.png)
 
 ## ✨ Features
 
